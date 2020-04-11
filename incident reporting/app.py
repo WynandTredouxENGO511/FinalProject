@@ -6,7 +6,7 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 
 # function to deal with quotes in SQL queries
 def SQLquotes(str):
-    if "'" in str:
+    if "'" in  str:
         return str.replace("'", "''")
     else:
         return str
@@ -26,9 +26,21 @@ engine = create_engine(os.getenv("DATABASE_URL"))
 db = scoped_session(sessionmaker(bind=engine))
 print('database connected')
 
-@app.route("/")
+@app.route("/", methods=['GET', 'POST'])
 def home():
-    return render_template('home.html')
+    # normal page load
+    if request.method == "GET":
+        return render_template('home.html')
+    # incident form submission
+    else:
+        type = request.form.get('type')
+        date = request.form.get('popup-date')
+        comment = request.form.get('comment')
+        # escape ' character in comment
+        comment = SQLquotes(comment)
+
+        print(f"new incident form submission: {type}, {date}, {comment}")
+        return render_template('home.html', alertmsg="Submission sent!")
 
 
 
