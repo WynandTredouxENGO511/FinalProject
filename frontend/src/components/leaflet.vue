@@ -7,7 +7,7 @@ import leaflet from "leaflet";
 import { eventBus } from "../main.js";
 import "leaflet.markercluster";
 import axios from "axios";
-import * as turf from "@turf/turf";
+//import * as turf from "@turf/turf";
 import "leaflet-contextmenu";
 
 export default {
@@ -121,6 +121,24 @@ export default {
 
       let _this = this;
 
+      // add community boundaries to map
+      axios
+        .get("Community Boundaries.geojson")
+        .then(function(response) {
+          _this.communityB = response.data.features;
+          var communityLayer = leaflet.geoJson(_this.communityB);
+
+          //bind popup to all markers
+          communityLayer.eachLayer(function(layer) {
+            layer.bindTooltip(layer.feature.properties.name);
+          });
+
+          _this.leaf.addLayer(communityLayer);
+        })
+        .catch(function(error) {
+          console.log(error);
+        });
+
       // add police stations to map
       axios
         .get("https://data.calgary.ca/resource/ap4r-bav3.geojson")
@@ -135,7 +153,6 @@ export default {
             pointToLayer: function(feature, latlng) {
               return leaflet
                 .marker(latlng, { icon: policeMarker })
-                .on("click", onClick);
             }
           });
 
@@ -164,7 +181,6 @@ export default {
             pointToLayer: function(feature, latlng) {
               return leaflet
                 .marker(latlng, { icon: fireMarker })
-                .on("click", onClick);
             }
           });
 
@@ -204,61 +220,61 @@ export default {
         })
         .catch(function(error) {
           console.log(error);
-        });
+        });  
 
       //onclick function when users click on school marker
-      function onClick(e) {
-        var school = turf.point([e.latlng.lng, e.latlng.lat]);
-        var hosp = [];
-        for (var i = 0; i < _this.hospitals.length; ++i) {
-          hosp.push(turf.point(_this.hospitals[i].geometry.coordinates));
-        }
-        hosp = turf.featureCollection(hosp);
-        var nearesthospital = turf.nearestPoint(school, hosp);
-        //if line already exists, remove it before adding new one
-        if (_this.path != null) {
-          _this.leaf.removeLayer(_this.path);
-        }
-        // fix distance and create tooltip
-        var tooltip;
-        if ( nearesthospital.properties.distanceToPoint < 1.0) {
-          tooltip = "Distance is " + (nearesthospital.properties.distanceToPoint * 1000).toFixed(2) + " m";
-        } else {
-          tooltip = "Distance is " + nearesthospital.properties.distanceToPoint.toFixed(2) + " km";
-        }
+      // function onClick(e) {
+      //   var school = turf.point([e.latlng.lng, e.latlng.lat]);
+      //   var hosp = [];
+      //   for (var i = 0; i < _this.hospitals.length; ++i) {
+      //     hosp.push(turf.point(_this.hospitals[i].geometry.coordinates));
+      //   }
+      //   hosp = turf.featureCollection(hosp);
+      //   var nearesthospital = turf.nearestPoint(school, hosp);
+      //   //if line already exists, remove it before adding new one
+      //   if (_this.path != null) {
+      //     _this.leaf.removeLayer(_this.path);
+      //   }
+      //   // fix distance and create tooltip
+      //   var tooltip;
+      //   if ( nearesthospital.properties.distanceToPoint < 1.0) {
+      //     tooltip = "Distance is " + (nearesthospital.properties.distanceToPoint * 1000).toFixed(2) + " m";
+      //   } else {
+      //     tooltip = "Distance is " + nearesthospital.properties.distanceToPoint.toFixed(2) + " km";
+      //   }
 
-        _this.path = leaflet
-          .polyline(
-            [
-              [e.latlng.lat, e.latlng.lng],
-              [
-                nearesthospital.geometry.coordinates[1],
-                nearesthospital.geometry.coordinates[0]
-              ]
-            ],
-            { color: "red" }
-          )
-          .bindTooltip(tooltip)
-          .addTo(_this.leaf);
-        // get name of hospital
-        var name;
-        for (i = 0; i < _this.hospitals.length; i++) {
-          if (
-            nearesthospital.geometry.coordinates[0] ==
-              _this.hospitals[i].geometry.coordinates[0] &&
-            nearesthospital.geometry.coordinates[1] ==
-              _this.hospitals[i].geometry.coordinates[1]
-          ) {
-            name = _this.hospitals[i].properties.name;
-            break;
-          }
-        }
-        eventBus.$emit("foundHospital", {
-          school: e.target.feature.properties.name,
-          hospital: name
-        });
-        _this.leaf.fitBounds(_this.path.getBounds());
-      }
+      //   _this.path = leaflet
+      //     .polyline(
+      //       [
+      //         [e.latlng.lat, e.latlng.lng],
+      //         [
+      //           nearesthospital.geometry.coordinates[1],
+      //           nearesthospital.geometry.coordinates[0]
+      //         ]
+      //       ],
+      //       { color: "red" }
+      //     )
+      //     .bindTooltip(tooltip)
+      //     .addTo(_this.leaf);
+      //   // get name of hospital
+      //   var name;
+      //   for (i = 0; i < _this.hospitals.length; i++) {
+      //     if (
+      //       nearesthospital.geometry.coordinates[0] ==
+      //         _this.hospitals[i].geometry.coordinates[0] &&
+      //       nearesthospital.geometry.coordinates[1] ==
+      //         _this.hospitals[i].geometry.coordinates[1]
+      //     ) {
+      //       name = _this.hospitals[i].properties.name;
+      //       break;
+      //     }
+      //   }
+      //   eventBus.$emit("foundHospital", {
+      //     school: e.target.feature.properties.name,
+      //     hospital: name
+      //   });
+      //   _this.leaf.fitBounds(_this.path.getBounds());
+      // }
     } //---- end of map initialization ----
   }
 };
