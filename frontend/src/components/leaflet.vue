@@ -8,6 +8,7 @@ import { eventBus } from "../main.js";
 import "leaflet.markercluster";
 import axios from "axios";
 import * as turf from "@turf/turf";
+import "leaflet-contextmenu";
 
 export default {
   name: "mymap",
@@ -64,8 +65,58 @@ export default {
       this.leaf = new leaflet.map("map-container", {
         center: [51.0839, -114.1439],
         zoom: 13,
-        layers: [OSMtile]
+        layers: [OSMtile],
+        contextmenu: true,
+            contextmenuWidth: 140,
+            contextmenuItems: [{
+                text: 'Show coordinates',
+                callback: showCoordinates
+            }, {
+                text: 'Center map here',
+                callback: centerMap
+            }, {
+                text: 'Report incident here',
+                callback: ReportInc
+            }, '-', {
+                text: 'Zoom in',
+                icon: 'https://img.icons8.com/metro/26/000000/zoom-in.png',
+                callback: zoomIn
+            }, {
+                text: 'Zoom out',
+                icon: 'https://img.icons8.com/metro/26/000000/zoom-out.png',
+                callback: zoomOut
+            }]
       });
+
+      // context menu items
+        function showCoordinates(e) {
+            var msg = ''.concat(e.latlng.lat, ', ', e.latlng.lng);
+            alert(msg);
+        }
+
+        function centerMap(e) {
+            _this.leaf.panTo(e.latlng);
+        }
+
+        function zoomIn() {
+            _this.leaf.zoomIn();
+        }
+
+        function zoomOut() {
+            _this.leaf.zoomOut();
+        }
+
+        function ReportInc(e) {
+            console.log(e.latlng.lat)
+            document.getElementById("popupForm").style.display = "block";
+            document.getElementById("popup-title").innerHTML = ''.concat('Report incident @ ', Math.round(e.latlng.lat * 10000) / 10000, ', ', Math.round(e.latlng.lng * 10000) / 10000);
+
+        }
+
+        // function closeForm() {
+        //     document.getElementById("popupForm").style.display = "none";
+        // }
+
       //adds scale bar
       leaflet.control.scale().addTo(this.leaf);
       //adds layer control to the map
