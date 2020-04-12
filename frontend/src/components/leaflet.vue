@@ -119,8 +119,6 @@ export default {
       var defaultTile = { OpenStreetMap: OSMtile, Satellite: satellite };
       leaflet.control.layers(defaultTile).addTo(this.leaf);
 
-      let _this = this;
-
       // add community boundaries to map
       axios
         .get("Community Boundaries.geojson")
