@@ -19,7 +19,9 @@ export default {
       cluster: null,
       schools: null,
       hospitals: null,
-      path: null
+      fire: null,
+      police: null,
+      path: null,
     };
   },
 
@@ -35,6 +37,7 @@ export default {
   },
 
   methods: {
+
     //initializes leaflet map
     initMap() {
       //OSM tile layer
@@ -86,6 +89,8 @@ export default {
             }]
       });
 
+      let _this = this;
+
       // context menu items
         function showCoordinates(e) {
             var msg = ''.concat(e.latlng.lat, ', ', e.latlng.lng);
@@ -105,13 +110,8 @@ export default {
         }
 
         function ReportInc(e) {
-            document.getElementById("popupForm").style.display = "block";
-            document.getElementById("popup-title").innerHTML = ''.concat('Report incident @ ', Math.round(e.latlng.lat * 10000) / 10000, ', ', Math.round(e.latlng.lng * 10000) / 10000);
+            eventBus.$emit("openForm", {lat: e.latlng.lat, lng: e.latlng.lng});
         }
-
-        // function closeForm() {
-        //     document.getElementById("popupForm").style.display = "none";
-        // }
 
       //adds scale bar
       leaflet.control.scale().addTo(this.leaf);

@@ -48,6 +48,49 @@
       </v-dialog>
     </v-app-bar>
     <!-- Leaflet Map -->
+       <!-- Template for crime form submission -->
+
+        <v-dialog v-model="dialog" fullscreen hide-overlay transition="dialog-bottom-transition">
+          <v-card>
+            <v-toolbar dark color="indigo">
+              <v-btn icon dark @click="dialog = false">
+                <v-icon>mdi-close</v-icon>
+              </v-btn>
+              <v-toolbar-title>Please Enter in Your Information</v-toolbar-title>
+            </v-toolbar>
+
+            <div class="register-box">
+              <v-form>
+                <h2>Username</h2>
+                <v-text-field
+                  placeholder="root"
+
+                  type="text"
+                  filled
+                  required
+                />
+                <h2>Password</h2>
+                <v-text-field
+                  placeholder="abc123"
+
+                  type="password"
+                  filled
+                  required
+                />
+                <h2>Re-type Password</h2>
+                <v-text-field
+                  placeholder="abc123"
+
+                  type="password"
+                  filled
+                  required
+                />
+                <v-btn dark color="blue" class="mr-4" >submit</v-btn>
+              </v-form>
+            </div>
+          </v-card>
+        </v-dialog>
+ 
     <v-content>
       <v-container class="fill-height pa-0 ma-0" fluid>
         <mymap />
@@ -57,6 +100,7 @@
       {{ alert }}
       <v-btn color="black" text @click="snackbar = false">Close</v-btn>
     </v-snackbar>
+
   </v-app>
 </template>
 
@@ -77,13 +121,22 @@ export default {
     alert: "If you are seeing this, contact the developer",
     about: false,
     snackbar: false,
+    dialog: false, 
   }),
 
   mounted() {
+    //delete 
     eventBus.$on("foundHospital", data => {
       this.alert = "Nearest Hospital/Cliic from " + data.school + " is " + data.hospital + "!";
       this.snackbar = true;
     });
+
+    //function to handle report form
+    eventBus.$on("openForm", data => {
+      this.dialog = true; 
+      console.log(data);
+    });
+      
   },
   methods: {
     clearpath() {
