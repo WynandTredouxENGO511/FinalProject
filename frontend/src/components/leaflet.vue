@@ -107,10 +107,8 @@ export default {
         }
 
         function ReportInc(e) {
-            console.log(e.latlng.lat)
             document.getElementById("popupForm").style.display = "block";
             document.getElementById("popup-title").innerHTML = ''.concat('Report incident @ ', Math.round(e.latlng.lat * 10000) / 10000, ', ', Math.round(e.latlng.lng * 10000) / 10000);
-
         }
 
         // function closeForm() {
@@ -125,20 +123,51 @@ export default {
 
       let _this = this;
 
-      // add schools to map
+      // add police stations to map
       axios
-        .get("https://data.calgary.ca/resource/fd9t-tdn2.geojson")
+        .get("https://data.calgary.ca/resource/ap4r-bav3.geojson")
         .then(function(response) {
-          _this.schools = response.data.features;
-          //custom school icon
-          var schoolMarker = leaflet.divIcon({
+          _this.police = response.data.features;
+          //custom police icon
+          var policeMarker = leaflet.divIcon({
             className: "marker",
             iconSize: [32, 32]
           });
-          var geoLayer = leaflet.geoJson(_this.schools, {
+          var geoLayer = leaflet.geoJson(_this.police, {
             pointToLayer: function(feature, latlng) {
               return leaflet
-                .marker(latlng, { icon: schoolMarker })
+                .marker(latlng, { icon: policeMarker })
+                .on("click", onClick);
+            }
+          });
+
+          //bind popup to all markers
+          _this.cluster = leaflet.markerClusterGroup();
+          _this.cluster.addLayer(geoLayer);
+
+          _this.cluster.eachLayer(function(layer) {
+            layer.bindTooltip(layer.feature.properties.name);
+          });
+          _this.leaf.addLayer(_this.cluster);
+        })
+        .catch(function(error) {
+          console.log(error);
+        });
+
+      // add fire stations to map
+      axios
+        .get("https://data.calgary.ca/resource/cqsb-2hhg.geojson")
+        .then(function(response) {
+          _this.fire = response.data.features;
+          //custom fire station icon
+          var fireMarker = leaflet.divIcon({
+            className: "marker3",
+            iconSize: [32, 32]
+          });
+          var geoLayer = leaflet.geoJson(_this.fire, {
+            pointToLayer: function(feature, latlng) {
+              return leaflet
+                .marker(latlng, { icon: fireMarker })
                 .on("click", onClick);
             }
           });
