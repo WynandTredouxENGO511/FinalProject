@@ -23,8 +23,6 @@ export default {
     };
   },
 
-  // api for schools: https://data.calgary.ca/resource/fd9t-tdn2.geojson
-  // api for hospitals:
   mounted() {
   
     this.initMap();
@@ -64,7 +62,7 @@ export default {
       //leaflet map
       this.leaf = new leaflet.map("map-container", {
         center: [51.0839, -114.1439],
-        zoom: 13,
+        zoom: 11,
         layers: [OSMtile],
         contextmenu: true,
             contextmenuWidth: 140,
@@ -133,7 +131,7 @@ export default {
             className: "marker",
             iconSize: [32, 32]
           });
-          var geoLayer = leaflet.geoJson(_this.police, {
+          var policeLayer = leaflet.geoJson(_this.police, {
             pointToLayer: function(feature, latlng) {
               return leaflet
                 .marker(latlng, { icon: policeMarker })
@@ -142,13 +140,11 @@ export default {
           });
 
           //bind popup to all markers
-          _this.cluster = leaflet.markerClusterGroup();
-          _this.cluster.addLayer(geoLayer);
-
-          _this.cluster.eachLayer(function(layer) {
+          policeLayer.eachLayer(function(layer) {
             layer.bindTooltip(layer.feature.properties.name);
           });
-          _this.leaf.addLayer(_this.cluster);
+
+          _this.leaf.addLayer(policeLayer);
         })
         .catch(function(error) {
           console.log(error);
@@ -164,7 +160,7 @@ export default {
             className: "marker3",
             iconSize: [32, 32]
           });
-          var geoLayer = leaflet.geoJson(_this.fire, {
+          var fireLayer = leaflet.geoJson(_this.fire, {
             pointToLayer: function(feature, latlng) {
               return leaflet
                 .marker(latlng, { icon: fireMarker })
@@ -173,13 +169,11 @@ export default {
           });
 
           //bind popup to all markers
-          _this.cluster = leaflet.markerClusterGroup();
-          _this.cluster.addLayer(geoLayer);
-
-          _this.cluster.eachLayer(function(layer) {
+          fireLayer.eachLayer(function(layer) {
             layer.bindTooltip(layer.feature.properties.name);
           });
-          _this.leaf.addLayer(_this.cluster);
+
+          _this.leaf.addLayer(fireLayer);
         })
         .catch(function(error) {
           console.log(error);
