@@ -1,4 +1,0 @@
-Create Table UserIncidents(id SERIAL PRIMARY KEY,
-CrimeType VARCHAR NOT NULL,
-CrimeDate DATE NOT NULL,
-Comment VARCHAR);

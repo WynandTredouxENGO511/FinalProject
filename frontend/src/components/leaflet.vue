@@ -110,7 +110,7 @@ export default {
         }
 
         function ReportInc(e) {
-            eventBus.$emit("openForm", {lat: e.latlng.lat, lng: e.latlng.lng});
+          eventBus.$emit("openForm", {lat: e.latlng.lat, lng: e.latlng.lng});
         }
 
       //adds scale bar

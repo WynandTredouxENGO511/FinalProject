@@ -16,6 +16,7 @@
     "leaflet.markercluster": "^1.4.1",
     "overlapping-marker-spiderfier-leaflet": "^0.2.7",
     "vue": "^2.6.11",
+    "vuejs-datepicker": "^1.6.2",
     "vuetify": "^2.2.11"
   },
   "devDependencies": {

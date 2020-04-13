@@ -1,5 +1,6 @@
 import os
 from flask import Flask, session, request, render_template, redirect, url_for, abort, jsonify
+from flask_cors import CORS
 from flask_session import Session
 from sqlalchemy import create_engine, MetaData, Table
 from sqlalchemy.orm import scoped_session, sessionmaker
@@ -26,24 +27,23 @@ engine = create_engine(os.getenv("DATABASE_URL"))
 db = scoped_session(sessionmaker(bind=engine))
 print('database connected')
 
-@app.route("/", methods=['GET', 'POST'])
-def home():
-    # normal page load
-    if request.method == "GET":
-        return render_template('home.html')
-    # incident form submission
-    else:
-        type = request.form.get('type')
-        date = request.form.get('popup-date')
-        comment = request.form.get('comment')
-        # escape ' character in comment
-        comment = SQLquotes(comment)
+# enable CORS
+CORS(app, resources={r'/*': {'origins': '*'}})
 
-        print(f"new incident form submission: {type}, {date}, {comment}")
-        return render_template('home.html', alertmsg="Submission sent!")
+@app.route("/", methods=['POST'])
+def home():
+    response_object = {'status': 'success'}
+    # incident form submission
+    if request.method == "POST":
+        post_data = request.get_json()
+        # escape ' character in comment
+        post_data['comment'] = SQLquotes(post_data['comment'])
+        print(f"new incident form submission: {post_data['type']}, {post_data['date']}, {post_data['comment']}")
+    return jsonify(response_object)
+
 
 
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0')
+    app.run()

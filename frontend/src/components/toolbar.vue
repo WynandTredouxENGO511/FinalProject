@@ -56,36 +56,53 @@
               <v-btn icon dark @click="dialog = false">
                 <v-icon>mdi-close</v-icon>
               </v-btn>
-              <v-toolbar-title>Please Enter in Your Information</v-toolbar-title>
+              <v-toolbar-title>{{ dialogTitle }}</v-toolbar-title>
             </v-toolbar>
 
             <div class="register-box">
               <v-form>
-                <h2>Username</h2>
-                <v-text-field
-                  placeholder="root"
-
-                  type="text"
-                  filled
+                <h2>Incident Type</h2>
+                <v-select
+                  :items="IncidentTypes"
+                  :rules="[v => !!v || 'Item is required']"
+                  label="Select an Inident Category"
                   required
-                />
-                <h2>Password</h2>
-                <v-text-field
-                  placeholder="abc123"
+                  v-model="IncidentType"
+                ></v-select>
 
-                  type="password"
-                  filled
-                  required
-                />
-                <h2>Re-type Password</h2>
-                <v-text-field
-                  placeholder="abc123"
+                <h2>Incident Date</h2>
+                <v-menu
+                  ref="menu"
+                  v-model="menu"
+                  :close-on-content-click="false"
+                  :return-value.sync="date"
+                  transition="scale-transition"
+                  offset-y
+                  min-width="290px"
+                >
+                  <template v-slot:activator="{ on }">
+                    <v-text-field
+                      v-model="date"
+                      prepend-icon="event"
+                      :rules="[v => !!v || 'Item is required']"
+                      required
+                      v-on="on"
+                    ></v-text-field>
+                  </template>
+                  <v-date-picker v-model="date" no-title scrollable>
+                    <v-spacer></v-spacer>
+                    <v-btn text color="primary" @click="menu = false">Cancel</v-btn>
+                    <v-btn text color="primary" @click="$refs.menu.save(date)">OK</v-btn>
+                  </v-date-picker>
+                </v-menu>
 
-                  type="password"
-                  filled
-                  required
+                <h2>Comment</h2>
+                <v-textarea
+                  placeholder="(Optional)"
+                  auto-grow
+                  v-model="comment"
                 />
-                <v-btn dark color="blue" class="mr-4" >submit</v-btn>
+                <v-btn dark color="blue" class="mr-4" v-on:click="onSubmit">submit</v-btn>
               </v-form>
             </div>
           </v-card>
@@ -107,6 +124,7 @@
 <script>
 import mymap from "./leaflet";
 import { eventBus } from '../main';
+import axios from "axios";
 
 export default {
   name: "toolbar",
@@ -121,7 +139,17 @@ export default {
     alert: "If you are seeing this, contact the developer",
     about: false,
     snackbar: false,
-    dialog: false, 
+    dialog: false,
+    dialogTitle: "Report an Incident @",
+    IncidentTypes: [
+      "Theft From Vehicle", "Theft of Vehicle", "Break & Enter - Commercial", 
+      "Assault (Non-domestic)", "Break & Enter - Dwelling", "Violence Other (Non-domestic)",
+      "Break & Enter - Other Premises", "Street Robbery", "Commercial Robbery", "Other"
+    ],
+    date: new Date().toISOString().substr(0, 10),
+    IncidentType: '',
+    comment: '',
+    menu: false,
   }),
 
   mounted() {
@@ -133,14 +161,30 @@ export default {
 
     //function to handle report form
     eventBus.$on("openForm", data => {
-      this.dialog = true; 
+      this.dialog = true;
+      this.dialogTitle = "Report an Incident @ ".concat(Math.round(data.lat * 10000) / 10000, ', ', Math.round(data.lng * 10000) / 10000); 
       console.log(data);
-    });
-      
+    });     
   },
   methods: {
     clearpath() {
       eventBus.$emit("clear");
+    },
+    onSubmit() {
+      console.log(this.IncidentType);
+      console.log(this.date);
+      console.log(this.comment);
+      const path = 'http://localhost:5000/';
+      const payload = {
+        type: this.IncidentType,
+        date: this.date,
+        comment: this.comment,
+      };
+      axios.post(path, payload);
+      this.IncidentType = '';
+      this.comment = '';
+      this.date = new Date().toISOString().substr(0, 10);
+      this.dialog = false;
     }
   }
 };
