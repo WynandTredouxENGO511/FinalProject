@@ -68,7 +68,7 @@ export default {
         zoom: 11,
         layers: [OSMtile],
         contextmenu: true,
-            contextmenuWidth: 140,
+            contextmenuWidth: 170,
             contextmenuItems: [{
                 text: 'Show coordinates',
                 callback: showCoordinates
@@ -86,6 +86,15 @@ export default {
                 text: 'Zoom out',
                 icon: 'https://img.icons8.com/metro/26/000000/zoom-out.png',
                 callback: zoomOut
+            }, '-', {
+              text: 'Find Nearest Hospital',
+              callback: NearestHosp
+            }, {
+              text: 'Find Nearest Police Station',
+              callback: NearestPol
+            }, {
+              text: 'Find Nearest Fire Station',
+              callback: NearestFire
             }]
       });
 
@@ -128,6 +137,80 @@ export default {
             eventBus.$emit("openForm", {lat: e.latlng.lat, lng: e.latlng.lng, Cname: communityName});
           }
         }
+
+        function NearestHosp(e){
+          var point = turf.point([e.latlng.lng, e.latlng.lat]);
+          var layer = _this.hospitals;
+          Nearest(point, layer);
+        }
+
+        function NearestPol(e){
+          var point = turf.point([e.latlng.lng, e.latlng.lat]);
+          var layer = _this.police;
+          Nearest(point, layer);
+        }
+
+        function NearestFire(e){
+          var point = turf.point([e.latlng.lng, e.latlng.lat]);
+          var layer = _this.fire;
+          Nearest(point, layer);
+        }
+
+        function Nearest(point, layer){
+          // console.log(point);
+          // console.log(layer);
+          var stations = [];
+          for (var i = 0; i < layer.length; ++i) {
+            stations.push(turf.point(layer[i].geometry.coordinates));
+          }
+          stations = turf.featureCollection(stations);
+          var nearestStation = turf.nearestPoint(point, stations);
+          //if line already exists, remove it before adding new one
+          if (_this.path != null) {
+            _this.leaf.removeLayer(_this.path);
+          }
+          // fix distance and create tooltip
+          var tooltip;
+          if ( nearestStation.properties.distanceToPoint < 1.0) {
+            tooltip = "Distance is " + (nearestStation.properties.distanceToPoint * 1000).toFixed(2) + " m";
+          } else {
+            tooltip = "Distance is " + nearestStation.properties.distanceToPoint.toFixed(2) + " km";
+          }
+          _this.path = leaflet
+            .polyline(
+              [
+                [
+                point.geometry.coordinates[1], 
+                point.geometry.coordinates[0]
+                ],
+                [
+                  nearestStation.geometry.coordinates[1],
+                  nearestStation.geometry.coordinates[0]
+                ]
+              ],
+              { color: "red" }
+            )
+            .bindTooltip(tooltip)
+            .addTo(_this.leaf);
+          // get name of station
+          var name;
+          for (i = 0; i < layer.length; i++) {
+            if (
+              nearestStation.geometry.coordinates[0] ==
+                layer[i].geometry.coordinates[0] &&
+              nearestStation.geometry.coordinates[1] ==
+                layer[i].geometry.coordinates[1]
+            ) {
+              name = layer[i].properties.name;
+              break;
+            }
+          }
+
+          console.log(name);
+          // TODO: idk, probably make a marker where the user clicked or something
+
+        }
+
 
       //adds scale bar
       leaflet.control.scale().addTo(this.leaf);
