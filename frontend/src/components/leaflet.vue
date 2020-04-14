@@ -15,13 +15,18 @@ export default {
 
   data() {
     return {
-      leaf: null, //Interactive map
-      cluster: null,
-      schools: null,
+      leaf: null, // Interactive map
+      cluster: false,
       hospitals: null,
       fire: null,
       police: null,
       path: null,
+      // emergancy station map layers
+      hosplayer: null,
+      fireLayer: null,
+      policeLayer: null,
+      // cluster layer
+      emergcluster: null,
     };
   },
 
@@ -34,6 +39,30 @@ export default {
         this.leaf.removeLayer(this.path);
       }
     });
+
+    eventBus.$on("ReloadEmerg", () => {
+      console.log('Reload emergancy servies layers')
+      if (this.hosplayer == null || this.fireLayer == null || this.policeLayer == null) {
+        console.log("ReloadEmerg: Error, null layer");
+        return;
+      }
+
+      // remove layers from map
+      this.leaf.removeLayer(this.hosplayer);
+      this.leaf.removeLayer(this.fireLayer);
+      this.leaf.removeLayer(this.policeLayer);
+      this.leaf.removeLayer(this.emergcluster);
+
+      // re-add layers based on cluster option
+      if (this.cluster){
+        this.leaf.addLayer(this.emergcluster);
+      }else{
+        this.leaf.addLayer(this.hosplayer);
+        this.leaf.addLayer(this.fireLayer);
+        this.leaf.addLayer(this.policeLayer);
+      }
+    });
+
   },
 
   methods: {
@@ -86,6 +115,9 @@ export default {
                 text: 'Zoom out',
                 icon: 'https://img.icons8.com/metro/26/000000/zoom-out.png',
                 callback: zoomOut
+            },{
+              text:'Cluster icons toggle: false',
+              callback: clustertoggle
             }, '-', {
               text: 'Find Nearest Hospital',
               callback: NearestHosp
@@ -211,6 +243,28 @@ export default {
 
         }
 
+        function clustertoggle(){
+          if (_this.cluster){
+            // remove toggle conext menu item and re-add it with new text
+            _this.leaf.contextmenu.removeItem(6);
+            _this.leaf.contextmenu.insertItem({
+              text:'Cluster icons toggle: false',
+              callback: clustertoggle
+            }, 6);
+            _this.cluster = false;
+          }else{
+            // remove toggle conext menu item and re-add it with new text
+            _this.leaf.contextmenu.removeItem(6);
+            _this.leaf.contextmenu.insertItem({
+              text:'Cluster icons toggle: true',
+              callback: clustertoggle
+            }, 6);
+            _this.cluster = true;
+          }
+          console.log(_this.cluster);
+          eventBus.$emit("ReloadEmerg");
+        }
+
 
       //adds scale bar
       leaflet.control.scale().addTo(this.leaf);
@@ -235,7 +289,8 @@ export default {
         .catch(function(error) {
           console.log(error);
         });
-
+      // initialize emergcluster
+      _this.emergcluster = leaflet.markerClusterGroup();
       // add police stations to map
       axios
         .get("https://data.calgary.ca/resource/ap4r-bav3.geojson")
@@ -246,7 +301,7 @@ export default {
             className: "marker",
             iconSize: [32, 32]
           });
-          var policeLayer = leaflet.geoJson(_this.police, {
+          _this.policeLayer = leaflet.geoJson(_this.police, {
             pointToLayer: function(feature, latlng) {
               return leaflet
                 .marker(latlng, { icon: policeMarker })
@@ -254,11 +309,12 @@ export default {
           });
 
           //bind popup to all markers
-          policeLayer.eachLayer(function(layer) {
+          _this.policeLayer.eachLayer(function(layer) {
             layer.bindTooltip(layer.feature.properties.name);
           });
-
-          _this.leaf.addLayer(policeLayer);
+          // add to map and cluster layer
+          _this.emergcluster.addLayer(_this.policeLayer);
+          _this.leaf.addLayer(_this.policeLayer);
         })
         .catch(function(error) {
           console.log(error);
@@ -274,7 +330,7 @@ export default {
             className: "marker3",
             iconSize: [32, 32]
           });
-          var fireLayer = leaflet.geoJson(_this.fire, {
+          _this.fireLayer = leaflet.geoJson(_this.fire, {
             pointToLayer: function(feature, latlng) {
               return leaflet
                 .marker(latlng, { icon: fireMarker })
@@ -282,11 +338,12 @@ export default {
           });
 
           //bind popup to all markers
-          fireLayer.eachLayer(function(layer) {
+          _this.fireLayer.eachLayer(function(layer) {
             layer.bindTooltip(layer.feature.properties.name);
           });
-
-          _this.leaf.addLayer(fireLayer);
+          // add to map and cluster layer
+          _this.emergcluster.addLayer(_this.fireLayer);
+          _this.leaf.addLayer(_this.fireLayer);
         })
         .catch(function(error) {
           console.log(error);
@@ -304,20 +361,22 @@ export default {
             className: "marker2",
             iconSize: [32, 32]
           });
-          var geoLayer2 = leaflet.geoJson(_this.hospitals, {
+          _this.hosplayer = leaflet.geoJson(_this.hospitals, {
             pointToLayer: function(feature, latlng) {
               return leaflet.marker(latlng, { icon: hospMarker });
             }
           });
 
-          geoLayer2.eachLayer(function(layer) {
+          _this.hosplayer.eachLayer(function(layer) {
             layer.bindTooltip(layer.feature.properties.name);
           });
-          _this.leaf.addLayer(geoLayer2);
+          // add to map and cluster layer
+          _this.emergcluster.addLayer(_this.hosplayer);
+          _this.leaf.addLayer(_this.hosplayer);
         })
         .catch(function(error) {
           console.log(error);
-        });  
+        });
 
       //onclick function when users click on school marker
       // function onClick(e) {
