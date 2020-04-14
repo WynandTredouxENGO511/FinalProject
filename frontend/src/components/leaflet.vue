@@ -7,7 +7,7 @@ import leaflet from "leaflet";
 import { eventBus } from "../main.js";
 import "leaflet.markercluster";
 import axios from "axios";
-//import * as turf from "@turf/turf";
+import * as turf from "@turf/turf";
 import "leaflet-contextmenu";
 
 export default {
@@ -110,7 +110,23 @@ export default {
         }
 
         function ReportInc(e) {
-          eventBus.$emit("openForm", {lat: e.latlng.lat, lng: e.latlng.lng});
+          // check which community the coordinate is in
+          var point = turf.point([e.latlng.lng, e.latlng.lat]);
+          var communityName = '';
+          //console.log(point);
+          //console.log(_this.communityB)
+          for (var i = 0; i<_this.communityB.length; i++){
+            if (turf.booleanContains(_this.communityB[i].geometry, point)){
+              console.log(_this.communityB[i].properties.name);
+              communityName = _this.communityB[i].properties.name;
+              break;
+            }
+          }
+          if (communityName == ''){
+            alert("This website only supports reporting incidents within Calgary");
+          }else{
+            eventBus.$emit("openForm", {lat: e.latlng.lat, lng: e.latlng.lng, Cname: communityName});
+          }
         }
 
       //adds scale bar

@@ -38,7 +38,7 @@ def home():
         post_data = request.get_json()
         # escape ' character in comment
         post_data['comment'] = SQLquotes(post_data['comment'])
-        print(f"new incident form submission: {post_data['type']}, {post_data['date']}, {post_data['comment']}")
+        print(f"new incident form submission: {post_data['type']}, {post_data['date']}, {post_data['community']}, {post_data['comment']}")
     return jsonify(response_object)
 
 

@@ -140,7 +140,8 @@ export default {
     about: false,
     snackbar: false,
     dialog: false,
-    dialogTitle: "Report an Incident @",
+    dialogTitle: "",
+    community: "",
     IncidentTypes: [
       "Theft From Vehicle", "Theft of Vehicle", "Break & Enter - Commercial", 
       "Assault (Non-domestic)", "Break & Enter - Dwelling", "Violence Other (Non-domestic)",
@@ -162,8 +163,8 @@ export default {
     //function to handle report form
     eventBus.$on("openForm", data => {
       this.dialog = true;
-      this.dialogTitle = "Report an Incident @ ".concat(Math.round(data.lat * 10000) / 10000, ', ', Math.round(data.lng * 10000) / 10000); 
-      console.log(data);
+      this.dialogTitle = "Report an Incident the ".concat(data.Cname, " community"); 
+      this.community = data.Cname;
     });     
   },
   methods: {
@@ -171,6 +172,12 @@ export default {
       eventBus.$emit("clear");
     },
     onSubmit() {
+      // check that required field is filled (date is always filled by default)
+      if (this.IncidentType == ''){
+        alert("Please select an Incident Type");
+        return false;
+      }
+      
       console.log(this.IncidentType);
       console.log(this.date);
       console.log(this.comment);
@@ -178,6 +185,7 @@ export default {
       const payload = {
         type: this.IncidentType,
         date: this.date,
+        community: this.community,
         comment: this.comment,
       };
       axios.post(path, payload);
@@ -185,6 +193,7 @@ export default {
       this.comment = '';
       this.date = new Date().toISOString().substr(0, 10);
       this.dialog = false;
+      return true;
     }
   }
 };
