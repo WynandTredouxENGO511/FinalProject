@@ -14,6 +14,7 @@
     "core-js": "^3.6.4",
     "leaflet": "^1.6.0",
     "leaflet-contextmenu": "^1.4.0",
+    "leaflet-side-by-side": "^2.1.0",
     "leaflet.markercluster": "^1.4.1",
     "overlapping-marker-spiderfier-leaflet": "^0.2.7",
     "vue": "^2.6.11",

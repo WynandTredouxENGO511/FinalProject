@@ -6,15 +6,37 @@
           <v-list-item-content>
             <v-list-item-title>
               <h1>Visualize Crime Data</h1>
+              <v-switch v-model="filter2" label="Multiple Filters"></v-switch>
             </v-list-item-title>
           </v-list-item-content>
         </v-list-item>
         <v-divider></v-divider>
         <v-expansion-panels multiple>
           <v-expansion-panel>
-            <v-expansion-panel-header>Filters</v-expansion-panel-header>
+            <v-expansion-panel-header>Filter 1</v-expansion-panel-header>
             <v-divider></v-divider>
             <!-- Selectors for filtering crime data -->
+            <v-expansion-panel-content>
+              <v-list dense>
+                  <v-list-item-content>
+                    <v-select :items="years" label="Years" outlined multiple></v-select>
+                    <v-select :items="IncidentTypes" label="Incident Types" outlined multiple></v-select>
+                     <v-autocomplete
+                        :items="communities"
+                        item-text="properties.name"
+                        label="Communities"
+                        outlined
+                        multiple
+                        dense
+                      ></v-autocomplete>
+                  </v-list-item-content>
+              </v-list>
+            </v-expansion-panel-content>
+          </v-expansion-panel>
+          <!-- 2nd expantion pannel for optional 2nd filter -->
+          <v-expansion-panel :disabled="!filter2">
+            <v-expansion-panel-header>Filter 2</v-expansion-panel-header>
+            <v-divider></v-divider>
             <v-expansion-panel-content>
               <v-list dense>
                   <v-list-item-content>
@@ -160,7 +182,22 @@
       drawer: false,
       years: [2017, 2018, 2019, 2020],
       communities: null,
+      filter2: false,
     }),
+
+    watch: {
+      filter2(newValue){
+        //called whenever filter2 changes
+        if (newValue){ // if filter 2 is enabled
+          //enable leaflet sideBySide
+          eventBus.$emit("addsbs");
+        }else{
+          //disable leaflet sideBySide
+          eventBus.$emit("clearsbs");
+        }
+
+      }
+    },
 
     mounted() {
       //delete 
@@ -178,7 +215,6 @@
 
       //function to get communities geojson from leaflet.vue
       eventBus.$on("setCommunities", data => {
-        console.log(data);
         this.communities = data;
       });
     },

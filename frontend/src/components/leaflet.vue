@@ -9,6 +9,7 @@ import "leaflet.markercluster";
 import axios from "axios";
 import * as turf from "@turf/turf";
 import "leaflet-contextmenu";
+import "leaflet-side-by-side"
 
 export default {
   name: "mymap",
@@ -28,19 +29,21 @@ export default {
       // cluster layer
       emergcluster: null,
       communityB: null,
+      // sidebyside
+      sbs: null,
     };
   },
 
   mounted() {
   
     this.initMap();
-
+    // clear path lines
     eventBus.$on("clear", () => {
       if (this.path != null) {
         this.leaf.removeLayer(this.path);
       }
     });
-
+    // switch between clustered/unclustered
     eventBus.$on("ReloadEmerg", () => {
       console.log('Reload emergancy servies layers')
       if (this.hosplayer == null || this.fireLayer == null || this.policeLayer == null) {
@@ -63,6 +66,19 @@ export default {
         this.leaf.addLayer(this.policeLayer);
       }
     });
+    // remove sbs
+    eventBus.$on("clearsbs", () => {
+      if (this.sbs != null) {
+        this.leaf.removeControl(this.sbs)
+      }
+    });
+    // add sbs
+    eventBus.$on("addsbs", () => {
+      if (this.sbs != null) {
+        this.sbs.addTo(this.leaf);
+      }
+    });
+
 
   },
 
@@ -272,6 +288,11 @@ export default {
       //adds layer control to the map
       var defaultTile = { OpenStreetMap: OSMtile, Satellite: satellite };
       leaflet.control.layers(defaultTile).addTo(this.leaf);
+      //leaflet side-by-side
+      var filter1;
+      var filter2;
+      _this.sbs = leaflet.control.sideBySide(filter1, filter2)
+      //_this.sbs.addTo(this.leaf);
 
       // add community boundaries to map
       axios
