@@ -183,6 +183,7 @@
       years: [2017, 2018, 2019, 2020],
       communities: null,
       filter2: false,
+      captchaScore: 0,
     }),
 
     watch: {
@@ -217,6 +218,11 @@
       eventBus.$on("setCommunities", data => {
         this.communities = data;
       });
+
+      //set captcha score
+      eventBus.$on("setScore", data => {
+        this.captchaScore = data;
+      });
     },
     methods: {
       onSubmit() {
@@ -225,23 +231,35 @@
           alert("Please select an Incident Type");
           return false;
         }
-
+        eventBus.$emit("getScore");
         console.log(this.IncidentType);
         console.log(this.date);
         console.log(this.comment);
+        console.log(this.captchaScore)
         const path = 'http://localhost:5000/';
         const payload = {
           type: this.IncidentType,
           date: this.date,
           community: this.community,
           comment: this.comment,
+          score: this.captchaScore,
         };
-        axios.post(path, payload);
-        this.IncidentType = '';
-        this.comment = '';
-        this.date = new Date().toISOString().substr(0, 10);
-        this.dialog = false;
-        return true;
+        axios.post(path, payload).then(function(response){
+          if (response.data.status == 'fail'){
+            console.log(response.data.status);
+            console.log(response.data.comment);
+            alert('Error: Cannot submit form because your reCaptcha score is too low. Are you a bot?')
+            return false;
+          }
+        })
+        .catch(function (error){
+          console.log(error);
+        });
+      this.IncidentType = '';
+      this.comment = '';
+      this.date = new Date().toISOString().substr(0, 10);
+      this.dialog = false;
+      return true;
       }
     }
   };

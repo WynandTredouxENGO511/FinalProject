@@ -82,6 +82,10 @@ export default {
         this.sbs.addTo(this.leaf);
       }
     });
+    // get captcha value
+    eventBus.$on("getScore", () => {
+      eventBus.$emit("setScore", this.captchaScore);
+    });
   },
 
   methods: {

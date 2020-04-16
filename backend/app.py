@@ -33,23 +33,33 @@ CORS(app, resources={r'/*': {'origins': '*'}})
 
 @app.route("/", methods=['POST'])
 def home():
-    response_object = {'status': 'success'}
-    # incident form submission
-    if request.method == "POST":
-        post_data = request.get_json()
+    post_data = request.get_json()
+    score = post_data['score']
+    # check user's captcha score
+    if score > 0.5:
         # escape ' character in comment
         post_data['comment'] = SQLquotes(post_data['comment'])
         print(f"new incident form submission: {post_data['type']}, {post_data['date']}, {post_data['community']}, {post_data['comment']}")
-    return jsonify(response_object)
+        return jsonify(status='success')
+    else:
+        print(f"reCaptcha score too low {score}")
+        return jsonify(status='fail',comment='score too low')
 
 @app.route("/cap", methods=['POST'])
 def cap():
+    if session.get("capScore") is None:  # initialize reCaptcha score to 0
+        session["capScore"] = 0
+
     post_data = request.get_json()
     print(f"reCaptcha: {post_data['response']}")
     secretkey = '6LedK-oUAAAAAGdGu2rzhxww8Ud4eNJ4P_dJ0HiH'
     r = requests.post('https://www.google.com/recaptcha/api/siteverify', params={'secret': secretkey, 'response':post_data['response']})
-    print(r.content)
-    return r.content
+    r = r.json()
+    print(r)
+    session["capScore"] = r['score']
+    session.modified = True
+    print(session["capScore"])
+    return r
 
 
 
