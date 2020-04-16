@@ -23,7 +23,10 @@
                      <v-autocomplete
                         :items="communities"
                         item-text="properties.name"
-                        label="Community"
+                        label="Communities"
+                        outlined
+                        multiple
+                        dense
                       ></v-autocomplete>
                   </v-list-item-content>
               </v-list>
