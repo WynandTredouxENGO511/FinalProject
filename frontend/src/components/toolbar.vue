@@ -11,51 +11,42 @@
           </v-list-item-content>
         </v-list-item>
         <v-divider></v-divider>
-        <v-expansion-panels multiple>
+        <v-expansion-panels multiple accordion>
           <v-expansion-panel>
-            <v-expansion-panel-header>Filter 1</v-expansion-panel-header>
+            <v-expansion-panel-header>Filter 1 (Left)</v-expansion-panel-header>
             <v-divider></v-divider>
             <!-- Selectors for filtering crime data -->
             <v-expansion-panel-content>
               <v-list dense>
-                  <v-list-item-content>
-                    <v-select :items="years" label="Years" outlined multiple></v-select>
-                    <v-select :items="IncidentTypes" label="Incident Types" outlined multiple></v-select>
-                     <v-autocomplete
-                        :items="communities"
-                        item-text="properties.name"
-                        label="Communities"
-                        outlined
-                        multiple
-                        dense
-                      ></v-autocomplete>
-                  </v-list-item-content>
+                <v-list-item-content>
+                  <v-select :items="years" label="Years" outlined multiple v-model="filterLeft.year"></v-select>
+                  <v-select :items="IncidentTypes" label="Incident Types" outlined multiple v-model="filterLeft.incident"></v-select>
+                  <v-autocomplete :items="communities" item-text="properties.name" label="Communities" outlined multiple
+                    dense v-model="filterLeft.community"></v-autocomplete>
+                </v-list-item-content>
               </v-list>
             </v-expansion-panel-content>
           </v-expansion-panel>
-          <!-- 2nd expantion pannel for optional 2nd filter -->
+          <!-- 2nd expansion panel for optional 2nd filter -->
           <v-expansion-panel :disabled="!filter2">
-            <v-expansion-panel-header>Filter 2</v-expansion-panel-header>
+            <v-expansion-panel-header>Filter 2 (Right)</v-expansion-panel-header>
             <v-divider></v-divider>
             <v-expansion-panel-content>
               <v-list dense>
-                  <v-list-item-content>
-                    <v-select :items="years" label="Years" outlined multiple></v-select>
-                    <v-select :items="IncidentTypes" label="Incident Types" outlined multiple></v-select>
-                     <v-autocomplete
-                        :items="communities"
-                        item-text="properties.name"
-                        label="Communities"
-                        outlined
-                        multiple
-                        dense
-                      ></v-autocomplete>
-                  </v-list-item-content>
+                <v-list-item-content>
+                  <v-select :items="years" label="Years" outlined multiple v-model="filterRight.year"></v-select>
+                  <v-select :items="IncidentTypes" label="Incident Types" outlined multiple v-model="filterRight.incident"></v-select>
+                  <v-autocomplete :items="communities" item-text="properties.name" label="Communities" outlined multiple
+                    dense v-model="filterRight.community"></v-autocomplete>
+                </v-list-item-content>
               </v-list>
             </v-expansion-panel-content>
           </v-expansion-panel>
         </v-expansion-panels>
       </v-list>
+      <v-col align="center">
+        <v-btn color="blue" onClick="visualize"> UPDATE</v-btn>
+      </v-col>
     </v-navigation-drawer>
     <!-- Top Nav Bar -->
     <v-app-bar app color="Black" dark class="pl-2">
@@ -153,7 +144,6 @@
     eventBus
   } from '../main';
   import axios from "axios";
-
   export default {
     name: "toolbar",
     components: {
@@ -184,15 +174,25 @@
       communities: null,
       filter2: false,
       captchaScore: 0,
+      filterLeft: {
+        year: [],
+        incident: [],
+        community: [],
+      },
+      filterRight: {
+        year: [],
+        incident: [],
+        community: [],
+      },     
     }),
 
     watch: {
-      filter2(newValue){
+      filter2(newValue) {
         //called whenever filter2 changes
-        if (newValue){ // if filter 2 is enabled
+        if (newValue) { // if filter 2 is enabled
           //enable leaflet sideBySide
           eventBus.$emit("addsbs");
-        }else{
+        } else {
           //disable leaflet sideBySide
           eventBus.$emit("clearsbs");
         }
@@ -203,7 +203,7 @@
     mounted() {
       //delete 
       eventBus.$on("foundHospital", data => {
-        this.alert = "Nearest Hospital/Cliic from " + data.school + " is " + data.hospital + "!";
+        this.alert = "Nearest Hospital/Clinic from " + data.school + " is " + data.hospital + "!";
         this.snackbar = true;
       });
 
@@ -224,6 +224,7 @@
         this.captchaScore = data;
       });
     },
+
     methods: {
       onSubmit() {
         // check that required field is filled (date is always filled by default)
@@ -244,6 +245,7 @@
           comment: this.comment,
           score: this.captchaScore,
         };
+
         axios.post(path, payload).then(function(response){
           if (response.data.status == 'fail'){
             console.log(response.data.status);
@@ -257,14 +259,17 @@
           alert('Error: Could not verify reCaptcha score. Submission failed');
         });
 
-      this.IncidentType = '';
-      this.comment = '';
-      this.date = new Date().toISOString().substr(0, 10);
-      this.dialog = false;
-      return true;
+        this.IncidentType = '';
+        this.comment = '';
+        this.date = new Date().toISOString().substr(0, 10);
+        this.dialog = false;
+        return true;
+      },
+      visualize() {
+        // QUERY THINGS
       }
-    }
-  };
+    },
+  }
 </script>
 
 
