@@ -278,6 +278,7 @@ export default {
         .get("Community Boundaries.geojson")
         .then(function(response) {
           _this.communityB = response.data.features;
+          eventBus.$emit("setCommunities", _this.communityB);
           var communityLayer = leaflet.geoJson(_this.communityB);
 
           //bind popup to all markers

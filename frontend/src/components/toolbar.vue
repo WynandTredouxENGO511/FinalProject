@@ -20,6 +20,11 @@
                   <v-list-item-content>
                     <v-select :items="years" label="Years" outlined multiple></v-select>
                     <v-select :items="IncidentTypes" label="Incident Types" outlined multiple></v-select>
+                     <v-autocomplete
+                        :items="communities"
+                        item-text="properties.name"
+                        label="Community"
+                      ></v-autocomplete>
                   </v-list-item-content>
               </v-list>
             </v-expansion-panel-content>
@@ -151,6 +156,7 @@
       menu: false,
       drawer: false,
       years: [2017, 2018, 2019, 2020],
+      communities: null,
     }),
 
     mounted() {
@@ -165,6 +171,12 @@
         this.dialog = true;
         this.dialogTitle = "Report an Incident the ".concat(data.Cname, " community");
         this.community = data.Cname;
+      });
+
+      //function to get communities geojson from leaflet.vue
+      eventBus.$on("setCommunities", data => {
+        console.log(data);
+        this.communities = data;
       });
     },
     methods: {
