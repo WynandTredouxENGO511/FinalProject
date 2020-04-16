@@ -35,6 +35,7 @@ export default {
       // recaptcha score
       // this should be checked before an incident can be reported
       captchaScore: 0,
+      crime: [],
     };
   },
 
@@ -106,6 +107,8 @@ export default {
         })
       });
 
+      
+
       //OSM tile layer
       var OSMtile = new leaflet.tileLayer(
         "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
@@ -139,10 +142,10 @@ export default {
                 text: 'Show Coordinates',
                 callback: showCoordinates
             }, {
-                text: 'Center map here',
+                text: 'Center Map Here',
                 callback: centerMap
             }, {
-                text: 'Report incident here',
+                text: 'Report Incident Here',
                 callback: ReportInc
             }, '-', {
                 text: 'Zoom in',
@@ -153,7 +156,7 @@ export default {
                 icon: 'https://img.icons8.com/metro/26/000000/zoom-out.png',
                 callback: zoomOut
             },{
-              text:'Cluster icons toggle: false',
+              text:'Cluster Icons Toggle: false',
               callback: clustertoggle
             }, '-', {
               text: 'Find Nearest Hospital',
@@ -285,7 +288,7 @@ export default {
             // remove toggle conext menu item and re-add it with new text
             _this.leaf.contextmenu.removeItem(6);
             _this.leaf.contextmenu.insertItem({
-              text:'Cluster icons toggle: false',
+              text:'Cluster Icons Toggle: false',
               callback: clustertoggle
             }, 6);
             _this.cluster = false;
@@ -293,7 +296,7 @@ export default {
             // remove toggle conext menu item and re-add it with new text
             _this.leaf.contextmenu.removeItem(6);
             _this.leaf.contextmenu.insertItem({
-              text:'Cluster icons toggle: true',
+              text:'Cluster Icons Toggle: true',
               callback: clustertoggle
             }, 6);
             _this.cluster = true;
@@ -421,6 +424,15 @@ export default {
           console.log(error);
         });
 
+        //add crime data to the map
+        axios
+        .get("Community Crime Statistics.geojson")
+        .then(function(response) {
+          _this.crime = response;
+        })
+        .catch(function(error) {
+          console.log(error);
+        });
     } //---- end of map initialization ----
   }
 };
