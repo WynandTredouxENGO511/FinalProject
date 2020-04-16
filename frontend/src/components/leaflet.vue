@@ -10,6 +10,7 @@ import axios from "axios";
 import * as turf from "@turf/turf";
 import "leaflet-contextmenu";
 import "leaflet-side-by-side"
+import { load } from 'recaptcha-v3'
 
 export default {
   name: "mymap",
@@ -31,6 +32,9 @@ export default {
       communityB: null,
       // sidebyside
       sbs: null,
+      // recaptcha score
+      // this should be checked before an incident can be reported
+      captchaScore: 0,
     };
   },
 
@@ -78,14 +82,30 @@ export default {
         this.sbs.addTo(this.leaf);
       }
     });
-
-
   },
 
   methods: {
-
     //initializes leaflet map
     initMap() {
+      // get reCaptcha score
+      load('6LedK-oUAAAAALk-pVAf9sQd6eoR4lbmOjhdRHgL').then((recaptcha) => {
+        recaptcha.execute().then((token) => {
+            // verifying the user's response
+            const path = 'http://localhost:5000/cap';
+            const payload = {
+              response: token,
+            };
+            //axios.post(path, payload);
+            axios.post(path, payload).then(function(response){
+              _this.captchaScore = response.data.score;
+              console.log('reCaptcha score: '.concat(_this.captchaScore));
+            })
+            .catch(function (error){
+              console.log(error);
+            });
+        })
+      });
+
       //OSM tile layer
       var OSMtile = new leaflet.tileLayer(
         "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",

@@ -4,6 +4,7 @@ from flask_cors import CORS
 from flask_session import Session
 from sqlalchemy import create_engine, MetaData, Table
 from sqlalchemy.orm import scoped_session, sessionmaker
+import requests
 
 # function to deal with quotes in SQL queries
 def SQLquotes(str):
@@ -41,7 +42,14 @@ def home():
         print(f"new incident form submission: {post_data['type']}, {post_data['date']}, {post_data['community']}, {post_data['comment']}")
     return jsonify(response_object)
 
-
+@app.route("/cap", methods=['POST'])
+def cap():
+    post_data = request.get_json()
+    print(f"reCaptcha: {post_data['response']}")
+    secretkey = '6LedK-oUAAAAAGdGu2rzhxww8Ud4eNJ4P_dJ0HiH'
+    r = requests.post('https://www.google.com/recaptcha/api/siteverify', params={'secret': secretkey, 'response':post_data['response']})
+    print(r.content)
+    return r.content
 
 
 
