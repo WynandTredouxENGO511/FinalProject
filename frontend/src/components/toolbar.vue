@@ -254,7 +254,9 @@
         })
         .catch(function (error){
           console.log(error);
+          alert('Error: Could not verify reCaptcha score. Submission failed');
         });
+
       this.IncidentType = '';
       this.comment = '';
       this.date = new Date().toISOString().substr(0, 10);
