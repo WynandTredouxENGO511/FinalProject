@@ -54,28 +54,19 @@
         </v-list-item>
         <v-list-item>
           <v-list-content>
-            <v-switch v-model="heatLeft" label="Heatmap 1" @change="toggleHeatLeft"></v-switch>
-            <v-switch v-model="heatRight" label="Heatmap 2" @change="toggleHeatRight"></v-switch>
+            <v-switch v-model="heatLeft" label="Heatmap 1" @change="toggleHeatLeft" :disabled="!filterLeft.chart"></v-switch>
+            <v-switch v-model="heatRight" label="Heatmap 2" @change="toggleHeatRight" :disabled="!filterRight.chart"></v-switch>
           </v-list-content>
         </v-list-item>
       </v-list>
       <v-divider></v-divider>
       <v-col align="center">
-        <v-tooltip right>
-          <template v-slot:activator="{ on }">
-            <v-btn color="blue" @click.stop="verify" v-on="on"> UPDATE</v-btn>
-          </template>
-          <span>Submit data</span>
-        </v-tooltip>
+        <v-btn color="blue" @click.stop="verify">filter data</v-btn>
       </v-col>
       <v-col align="center">
-        <v-tooltip right>
-          <template v-slot:activator="{ on }">
-            <v-btn color="red" @click="off" v-on="on">clear</v-btn>
-          </template>
-          <span>Clear all data</span>
-        </v-tooltip>
+        <v-btn color="red" @click="off">clear all data</v-btn>
       </v-col>
+
     </v-navigation-drawer>
     <!-- Top Nav Bar -->
     <v-app-bar app color="Black" dark class="pl-2">
@@ -91,12 +82,48 @@
         <span>Learn more about the app!</span>
       </v-tooltip>
 
-      <v-dialog v-model="about" width="500" scrollable>
-        <v-card>
-          <v-card-title class="headline grey lighten-2" primary-title>About NHIYA!</v-card-title>
+      <v-dialog v-model="about" width="700" scrollable>
+        <v-card height="500">
+          <v-card-title class="headline grey lighten-2" primary-title>About CCC!</v-card-title>
 
           <v-card-text class="pt-2">
-            <p style="font-size:110%;">Welcome to "Calgary Crime Chart" or CCC for short.</p>
+            <p style="font-size:110%;">
+              Welcome to "Calgary Crime Chart" or CCC for short. This app allows users to interact with Calgary crime
+              data by visualizing it and submitting reports.
+            </p>
+            <p>
+              You can access the data on this site using the following APIs:
+              <br />
+              <ul>
+                <li>http://localhost:5000/query?incident='Incident type'&date=y&community='Community Name'</li>
+                <li>http://localhost:5000/queryusers?community='Community Name'</li>
+              </ul>
+              <br />
+              Where 'Incident type' can be:
+            </P>
+            <p style="padding-left: 5%;">
+              "Theft From Vehicle", "Theft of Vehicle", "Break & Enter - Commercial",
+              "Assault (Non-domestic)", "Break & Enter - Dwelling", "Violence Other (Non-domestic)",
+              "Break & Enter - Other Premises", "Street Robbery", "Commercial Robbery"
+              ‘date’ is just a year
+              and ‘community’ is the name of the community you want to search for.
+            </p>
+            <p>
+              Niether query is case sensitive, and any of the parameters may be omitted (although you must submit at
+              least one parameter). The response is in the following format: </p>
+            <pre>
+              {
+                Data: [{"category":
+                  "community":
+                  "count":
+                  "date": }]
+                  "status": "success"
+              }</pre> <br />
+            <p>
+              You can also query for multiple parameter values separated by a comma, for example: <br />
+              http://localhost:5000/query?incident='Theft FROM vehicle','theft OF Vehicle'&date=2018,2019&community=
+              'Calgary International Airport','12A'\
+            </p>
             <br />
             <h3 style="text-align:center;">Thank You for Using CCC!</h3>
           </v-card-text>
@@ -132,7 +159,7 @@
                 </v-list-item-content>
               </v-list-item>
               <v-list-item>
-                <v-list-item-content >
+                <v-list-item-content>
                   <h2>Incident Date</h2>
                   <v-menu ref="menu" v-model="menu" :close-on-content-click="false" :return-value.sync="date"
                     transition="scale-transition" offset-y min-width="290px">
@@ -171,20 +198,20 @@
           <v-toolbar-title>{{ reviewdialogTitle }}</v-toolbar-title>
         </v-toolbar>
         <v-container>
-          <v-data-table :headers="reviewdialogheaders" :items="reviewdialogitems" :items-per-page="10" ></v-data-table>
+          <v-data-table :headers="reviewdialogheaders" :items="reviewdialogitems" :items-per-page="10"></v-data-table>
         </v-container>
       </v-card>
     </v-dialog>
     <!-- CHART LEFT  -->
 
     <v-dialog v-model="cardLeft" hide-overlay persistent no-click-animation>
-      <v-card style="position: absolute; bottom: 0; left: 0; z-index: 2;" width="600" height="300">
+      <v-card flat style="position: absolute; bottom: 0; left: 0; z-index: 2;" width="600" height="300">
         <canvas id="leftChart"></canvas>
       </v-card>
     </v-dialog>
     <!-- CHART RIGHT -->
     <v-dialog v-model="cardRight" hide-overlay persistent no-click-animation>
-      <v-card style="position: absolute; bottom: 0; right: 0;  z-index: 2;" width="600" height="300">
+      <v-card flat style="position: absolute; bottom: 0; right: 0;  z-index: 2;" width="600" height="300">
         <canvas id="rightChart"></canvas>
       </v-card>
     </v-dialog>
@@ -194,11 +221,6 @@
         <mymap />
       </v-container>
     </v-content>
-    <v-snackbar v-model="snackbar" color="red" :timeout=15000>
-      {{ alert }}
-      <v-btn color="black" text @click="snackbar = false">Close</v-btn>
-    </v-snackbar>
-
   </v-app>
 </template>
 
@@ -220,9 +242,7 @@
     },
     data: () => ({
       sheet: false,
-      alert: "If you are seeing this, contact the developer",
       about: false,
-      snackbar: false,
       dialog: false,
       dialogTitle: "",
       community: "",
@@ -244,15 +264,14 @@
         year: [],
         incident: [],
         community: [],
+        chart: false,
       },
       filterRight: {
         year: [],
         incident: [],
         community: [],
-        chart: null,
+        chart: false,
       },
-      chartLeft: null,
-      chartRight: null,
       cardLeft: false,
       cardRight: false,
       crimeReviews: false,
@@ -366,6 +385,7 @@
         // QUERY THINGS
         this.expand = [];
         this.heatLeft = true;
+        this.filterLeft.chart=true;
         console.log('visualize');
         const path = 'http://localhost:5000/query';
         let _this = this;
@@ -379,6 +399,7 @@
         // RIGHT SIDE 
         if (this.filterRight.year.length != 0) {
           this.heatRight = true;
+          this.filterRight.chart=true;
           var crimeCountRight;
           (crimeCountRight = []).length = this.filterRight.year.length * 12;
           crimeCountRight.fill(0);
@@ -527,16 +548,19 @@
         this.filterLeft.year = [];
         this.filterLeft.community = [];
         this.filterLeft.incident = [];
+        this.filterLeft.chart = false;
 
         this.filterRight.year = [];
         this.filterRight.community = [];
         this.filterRight.incident = [];
+        this.filterRight.chart = false;
 
         this.cardLeft = false;
         this.cardRight = false;
 
         this.heatLeft = false;
         this.heatRight = false;
+        
         // clear heatmaps
         eventBus.$emit("clearheatmaps");
       },
@@ -584,6 +608,7 @@
       },
     },
   }
+
 </script>
 
 
