@@ -56,7 +56,7 @@
     <!-- Top Nav Bar -->
     <v-app-bar app color="Black" dark class="pl-2">
       <v-app-bar-nav-icon @click.stop="drawer = !drawer" />
-      <v-toolbar-title class="font-weight-black">Police things add cool title here</v-toolbar-title>
+      <v-toolbar-title class="font-weight-black">Calgary Crime Chart</v-toolbar-title>
       <v-spacer />
       <v-tooltip bottom>
         <template v-slot:activator="{ on }">
@@ -72,13 +72,9 @@
           <v-card-title class="headline grey lighten-2" primary-title>About NHIYA!</v-card-title>
 
           <v-card-text class="pt-2">
-            <p style="font-size:110%;">Welcome to "Nice Hospitals in Your Area" or NHIYA for short. Are you a sick
-              student looking to get better? Broken leg? Bad cough?
-              Well now you can find hospitals and clinics closest to your school! So what are you waiting for? These
-              hospitals are
-              desperately looking to patch you up!</p>
+            <p style="font-size:110%;">Welcome to "Calgary Crime Chart" or CCC for short.</p>
             <br />
-            <h3 style="text-align:center;">Thank You for Using NHIYA!</h3>
+            <h3 style="text-align:center;">Thank You for Using CCC!</h3>
           </v-card-text>
 
           <v-card-actions>
