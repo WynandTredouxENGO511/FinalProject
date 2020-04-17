@@ -1,0 +1,25 @@
+You can access the data on this site using the following APIs:
+
+http://localhost:5000/query?incident='Incident type'&date=y&community='Community Name'
+http://localhost:5000/queryusers?community='Community Name'
+
+Where 'Incident type' can be:
+	"Theft From Vehicle", "Theft of Vehicle", "Break & Enter - Commercial",
+   	"Assault (Non-domestic)", "Break & Enter - Dwelling", "Violence Other (Non-domestic)",
+    "Break & Enter - Other Premises", "Street Robbery", "Commercial Robbery"
+‘date’ is just a year
+and ‘community’ is the name of the community you want to search for.
+
+Niether query is case sensitive, and any of the parameters may be omitted (although you must submit at least one parameter)
+
+The response is in the following format:
+	{
+		Data: [{"category": 
+     			"community": 
+      			"count": 
+     			"date": }]
+		"status": "success"
+	}
+
+You can also query for multiple parameter values separated by a comma, for example:
+http://localhost:5000/query?incident='Theft FROM vehicle','theft OF Vehicle'&date=2018,2019&community= 'Calgary International Airport','12A'\
