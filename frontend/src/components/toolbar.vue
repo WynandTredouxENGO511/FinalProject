@@ -1,6 +1,6 @@
 <template>
   <v-app id="inspire" class="overflow-hidden">
-    <v-navigation-drawer v-model="drawer" dark app>
+    <v-navigation-drawer v-model="drawer" dark app style="z-index: 1000;">
       <v-list dense>
         <v-list-item>
           <v-list-item-content>
@@ -20,7 +20,8 @@
               <v-list dense>
                 <v-list-item-content>
                   <v-select :items="years" label="Years" outlined multiple v-model="filterLeft.year"></v-select>
-                  <v-select :items="IncidentTypes" label="Incident Types" outlined multiple v-model="filterLeft.incident"></v-select>
+                  <v-select :items="IncidentTypes" label="Incident Types" outlined multiple
+                    v-model="filterLeft.incident"></v-select>
                   <v-autocomplete :items="communities" item-text="properties.name" label="Communities" outlined multiple
                     dense v-model="filterLeft.community"></v-autocomplete>
                 </v-list-item-content>
@@ -35,7 +36,8 @@
               <v-list dense>
                 <v-list-item-content>
                   <v-select :items="years" label="Years" outlined multiple v-model="filterRight.year"></v-select>
-                  <v-select :items="IncidentTypes" label="Incident Types" outlined multiple v-model="filterRight.incident"></v-select>
+                  <v-select :items="IncidentTypes" label="Incident Types" outlined multiple
+                    v-model="filterRight.incident"></v-select>
                   <v-autocomplete :items="communities" item-text="properties.name" label="Communities" outlined multiple
                     dense v-model="filterRight.community"></v-autocomplete>
                 </v-list-item-content>
@@ -46,6 +48,9 @@
       </v-list>
       <v-col align="center">
         <v-btn color="blue" @click="visualize"> UPDATE</v-btn>
+      </v-col>
+      <v-col align="center">
+        <v-btn color="red" @click="off">clear</v-btn>
       </v-col>
     </v-navigation-drawer>
     <!-- Top Nav Bar -->
@@ -124,6 +129,18 @@
         </div>
       </v-card>
     </v-dialog>
+    <!-- CHART LEFT  -->
+    <v-dialog v-model="cardLeft" hide-overlay elevation="5" persistent no-click-animation>
+      <v-card style="position: absolute; bottom: 0; left: 0;" width="500" height="300">
+        <canvas id="planet-chart"></canvas>
+      </v-card>
+    </v-dialog>
+    <!-- CHART RIGHT -->
+    <v-dialog v-model="cardRight" hide-overlay elevation="5" persistent no-click-animation>
+      <v-card style="position: absolute; bottom: 0; right: 0;" width="500" height="300">
+        <canvas id="planet-chart2"></canvas>
+      </v-card>
+    </v-dialog>
 
     <v-content>
       <v-container class="fill-height pa-0 ma-0" fluid>
@@ -140,10 +157,68 @@
 
 <script>
   import mymap from "./leaflet";
+  import Chart from 'chart.js';
   import {
     eventBus
   } from '../main';
   import axios from "axios";
+
+  const planetChartData = {
+    type: 'line',
+    data: {
+      labels: ['Mercury', 'Venus', 'Earth', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune'],
+      datasets: [{ // one line graph
+          label: 'Number of Moons',
+          data: [0, 0, 1, 2, 67, 62, 27, 14],
+          backgroundColor: [
+            'rgba(54,73,93,.5)', // Blue
+            'rgba(54,73,93,.5)',
+            'rgba(54,73,93,.5)',
+            'rgba(54,73,93,.5)',
+            'rgba(54,73,93,.5)',
+            'rgba(54,73,93,.5)',
+            'rgba(54,73,93,.5)',
+            'rgba(54,73,93,.5)'
+          ],
+          borderColor: [
+            '#36495d',
+            '#36495d',
+            '#36495d',
+            '#36495d',
+            '#36495d',
+            '#36495d',
+            '#36495d',
+            '#36495d',
+          ],
+          borderWidth: 3
+        },
+        { // another line graph
+          label: 'Planet Mass (x1,000 km)',
+          data: [4.8, 12.1, 12.7, 6.7, 139.8, 116.4, 50.7, 49.2],
+          backgroundColor: [
+            'rgba(71, 183,132,.5)', // Green
+          ],
+          borderColor: [
+            '#47b784',
+          ],
+          borderWidth: 3
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      lineTension: 1,
+      scales: {
+        yAxes: [{
+          ticks: {
+            beginAtZero: true,
+            padding: 25,
+          }
+        }]
+      }
+    }
+  }
+
   export default {
     name: "toolbar",
     components: {
@@ -183,7 +258,12 @@
         year: [],
         incident: [],
         community: [],
-      },     
+        chart: null,
+      },
+      chartLeft: null,
+      chartRight: null,
+      cardLeft: false,
+      cardRight: false,
     }),
 
     watch: {
@@ -201,7 +281,6 @@
     },
 
     mounted() {
-      //delete 
       eventBus.$on("foundHospital", data => {
         this.alert = "Nearest Hospital/Clinic from " + data.school + " is " + data.hospital + "!";
         this.snackbar = true;
@@ -246,18 +325,18 @@
           score: this.captchaScore,
         };
 
-        axios.post(path, payload).then(function(response){
-          if (response.data.status == 'fail'){
-            console.log(response.data.status);
-            console.log(response.data.comment);
-            alert('Error: Cannot submit form because your reCaptcha score is too low. Are you a bot?')
-            return false;
-          }
-        })
-        .catch(function (error){
-          console.log(error);
-          alert('Error: Could not verify reCaptcha score. Submission failed');
-        });
+        axios.post(path, payload).then(function (response) {
+            if (response.data.status == 'fail') {
+              console.log(response.data.status);
+              console.log(response.data.comment);
+              alert('Error: Cannot submit form because your reCaptcha score is too low. Are you a bot?')
+              return false;
+            }
+          })
+          .catch(function (error) {
+            console.log(error);
+            alert('Error: Could not verify reCaptcha score. Submission failed');
+          });
 
         this.IncidentType = '';
         this.comment = '';
@@ -265,6 +344,7 @@
         this.dialog = false;
         return true;
       },
+
       visualize() {
         // QUERY THINGS
         console.log('visualize');
@@ -301,9 +381,46 @@
             console.log(error);
           });
           }
+          // display charts 
+          let _this = this;
+          this.cardLeft = true;
+          setTimeout(function () {
+            _this.createChart('planet-chart', planetChartData);
+          }, 500);
+          if (this.filter2) {
+            this.cardRight = true;
+            setTimeout(function () {
+              _this.createChart('planet-chart2', planetChartData);
+            }, 500);
+          }
+      },
+
+      off() {
+        //clear charts and reset variables
+        this.filterLeft.year = [];
+        this.filterLeft.community = [];
+        this.filterLeft.incident = [];
+  
+        this.filterRight.year = [];
+        this.filterRight.community = [];
+        this.filterRight.incident = [];
+  
+        this.cardLeft = false;
+        this.cardRight = false;
+      },
+  
+      createChart(chartId, chartData) {
+        const ctx = document.getElementById(chartId);
+        const myChart = new Chart(ctx, {
+          type: chartData.type,
+          data: chartData.data,
+          options: chartData.options,
+        });
+        this.chart = myChart;
       }
-    }
-  }
+
+    },
+ }
 </script>
 
 
@@ -322,6 +439,10 @@
   }
 
   .tool {
+    z-index: 1000;
+  }
+
+  .card-chart {
     z-index: 1000;
   }
 </style>
