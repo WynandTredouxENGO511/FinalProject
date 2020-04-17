@@ -468,6 +468,8 @@
 
         this.cardLeft = false;
         this.cardRight = false;
+        // clear heatmaps
+        eventBus.$emit("clearheatmaps");
       },
       //function to create chart
       createChart(chartId, chartData) {

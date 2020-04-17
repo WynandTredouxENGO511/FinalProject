@@ -93,10 +93,18 @@ export default {
         this.crime_right = response;
         this.updateHeatmaps('right', this.crime_right)
       }
-      
-
     });
+    eventBus.$on("clearheatmaps", () => {
+      if (this.heatmap_left!=null){
+         this.leaf.removeLayer(this.heatmap_left);
+         this.heatmap_left = null;
+      }
 
+      if (this.heatmap_right!=null){
+         this.leaf.removeLayer(this.heatmap_right);
+         this.heatmap_right = null;
+      }
+    });
 
   },
 
@@ -114,19 +122,19 @@ export default {
 
     // draw heatmap
     updateHeatmaps(side, data){
-      if (this.heatmap_left!=null){
+      if (side == 'left' && this.heatmap_left!=null){
          this.leaf.removeLayer(this.heatmap_left);
          this.heatmap_left = null;
       }
 
-      if (this.heatmap_right!=null){
+      if (side == 'right' && this.heatmap_right!=null){
          this.leaf.removeLayer(this.heatmap_right);
          this.heatmap_right = null;
       }
 
       data = data.data.data;
       console.log(side);
-      console.log(data);
+      //console.log(data);
       // get a list of all communities with their centers
       var centroid = this.getCommunityCentre(data[0].community);
       var maxcount = 0;
@@ -188,11 +196,11 @@ export default {
       console.log('heat_done!')
       //console.log(heat);
       // now finally create heatmap
-
+       var opacity = 0.5;
       if (side=='left'){
         this.heatmap_left = leaflet.heatLayer(heat, {
         radius: 50,
-        minOpacity: 0.3,
+        minOpacity: opacity,
         // gradient : {0.3: '#5efffd', 0.5: '#6ba9fe', 0.8:'#a651ff', 1: '#f200fc'}
         });
         
@@ -200,7 +208,7 @@ export default {
       }else{
         this.heatmap_right = leaflet.heatLayer(heat, {
         radius: 50,
-        minOpacity: 0.3,
+        minOpacity: opacity,
         gradient : {0.3: '#fbff66', 0.5: '#b6dc64', 0.8:'#55a664', 1: '#288165'}
         });
         this.leaf.addLayer(this.heatmap_right);
