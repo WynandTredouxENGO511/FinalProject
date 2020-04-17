@@ -106,6 +106,26 @@ export default {
       }
     });
 
+    eventBus.$on("heatL", onoff => {
+      if (this.heatmap_left != null) {
+        if (!onoff) {
+          this.leaf.removeLayer(this.heatmap_left);
+        } else {
+          this.leaf.addLayer(this.heatmap_left);
+        }
+      }
+    });
+
+    eventBus.$on("heatR", onoff => {
+      if (this.heatmap_right != null) {
+        if (!onoff) {
+          this.leaf.removeLayer(this.heatmap_right);
+        } else {
+          this.leaf.addLayer(this.heatmap_right);
+        }
+      }
+    });
+
   },
 
   methods: {
