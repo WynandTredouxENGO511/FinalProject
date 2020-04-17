@@ -113,7 +113,7 @@
     <!-- Leaflet Map -->
     <!-- Template for crime form submission -->
     <v-dialog v-model="dialog" fullscreen hide-overlay transition="dialog-bottom-transition">
-      <v-card>
+      <v-card dark>
         <v-toolbar dark color="indigo">
           <v-btn icon dark @click="dialog = false">
             <v-icon>mdi-close</v-icon>
@@ -123,27 +123,39 @@
 
         <div class="register-box">
           <v-form>
-            <h2>Incident Type</h2>
-            <v-select :items="IncidentTypes" :rules="[v => !!v || 'Item is required']"
-              label="Select an Inident Category" required v-model="IncidentType"></v-select>
-
-            <h2>Incident Date</h2>
-            <v-menu ref="menu" v-model="menu" :close-on-content-click="false" :return-value.sync="date"
-              transition="scale-transition" offset-y min-width="290px">
-              <template v-slot:activator="{ on }">
-                <v-text-field v-model="date" prepend-icon="event" :rules="[v => !!v || 'Item is required']" required
-                  v-on="on"></v-text-field>
-              </template>
-              <v-date-picker v-model="date" no-title scrollable>
-                <v-spacer></v-spacer>
-                <v-btn text color="primary" @click="menu = false">Cancel</v-btn>
-                <v-btn text color="primary" @click="$refs.menu.save(date)">OK</v-btn>
-              </v-date-picker>
-            </v-menu>
-
-            <h2>Comment</h2>
-            <v-textarea placeholder="(Optional)" auto-grow v-model="comment" />
-            <v-btn dark color="blue" class="mr-4" v-on:click="onSubmit">submit</v-btn>
+            <v-list width="50%">
+              <v-list-item>
+                <v-list-item-content>
+                  <h2>Incident Type</h2>
+                  <v-select :items="IncidentTypes" :rules="[v => !!v || 'Item is required']"
+                    label="Select an Inident Category" required v-model="IncidentType"></v-select>
+                </v-list-item-content>
+              </v-list-item>
+              <v-list-item>
+                <v-list-item-content >
+                  <h2>Incident Date</h2>
+                  <v-menu ref="menu" v-model="menu" :close-on-content-click="false" :return-value.sync="date"
+                    transition="scale-transition" offset-y min-width="290px">
+                    <template v-slot:activator="{ on }">
+                      <v-text-field v-model="date" prepend-icon="event" :rules="[v => !!v || 'Item is required']"
+                        required v-on="on"></v-text-field>
+                    </template>
+                    <v-date-picker v-model="date" no-title scrollable>
+                      <v-spacer></v-spacer>
+                      <v-btn text color="primary" @click="menu = false">Cancel</v-btn>
+                      <v-btn text color="primary" @click="$refs.menu.save(date)">OK</v-btn>
+                    </v-date-picker>
+                  </v-menu>
+                </v-list-item-content>
+              </v-list-item>
+              <v-list-item>
+                <v-list-item-content>
+                  <h2>Comment</h2>
+                  <v-textarea placeholder="(Optional)" auto-grow v-model="comment" outlined filled />
+                </v-list-item-content>
+              </v-list-item>
+            </v-list>
+            <v-btn dark color="red" class="ml-10" v-on:click="onSubmit">submit</v-btn>
           </v-form>
         </div>
       </v-card>
@@ -151,18 +163,16 @@
 
     <!-- Dialog to show user submitted "Crime Reviews" -->
     <v-dialog v-model="crimeReviews" fullscreen hide-overlay transition="dialog-bottom-transition">
-      <v-card>
+      <v-card dark>
         <v-toolbar dark color="indigo">
           <v-btn icon dark @click="crimeReviews = false">
             <v-icon>mdi-close</v-icon>
           </v-btn>
           <v-toolbar-title>{{ reviewdialogTitle }}</v-toolbar-title>
         </v-toolbar>
-        <v-data-table
-          :headers="reviewdialogheaders"
-          :items="reviewdialogitems"
-          :items-per-page="10"
-        ></v-data-table>
+        <v-container>
+          <v-data-table :headers="reviewdialogheaders" :items="reviewdialogitems" :items-per-page="10" ></v-data-table>
+        </v-container>
       </v-card>
     </v-dialog>
     <!-- CHART LEFT  -->
@@ -247,10 +257,18 @@
       cardRight: false,
       crimeReviews: false,
       reviewdialogTitle: "",
-      reviewdialogheaders:[
-        {text: 'Catagory', value: 'category'},
-        {text: 'Date', value: 'date'},
-        {text: 'Comment', value: 'comment'},
+      reviewdialogheaders: [{
+          text: 'Catagory',
+          value: 'category'
+        },
+        {
+          text: 'Date',
+          value: 'date'
+        },
+        {
+          text: 'Comment',
+          value: 'comment'
+        },
       ],
       reviewdialogitems: null,
       heatLeft: false,
@@ -285,9 +303,9 @@
       eventBus.$on("openuserForm", data => {
         this.crimeReviews = true;
         var community = data[0];
-        var reviews  = data[1];
+        var reviews = data[1];
         console.log(reviews);
-        this.reviewdialogTitle = "User submitted Reports for ".concat(community);
+        this.reviewdialogTitle = "User Submitted Reports for ".concat(community);
         this.reviewdialogitems = reviews;
         //this.community = data.Cname;
       });
