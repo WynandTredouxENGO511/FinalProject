@@ -277,6 +277,9 @@ export default {
             }, {
                 text: 'Report Incident Here',
                 callback: ReportInc
+            },{
+                text: 'See Reports Here',
+                callback: ReportGet
             }, '-', {
                 text: 'Zoom in',
                 icon: 'https://img.icons8.com/metro/26/000000/zoom-in.png',
@@ -338,6 +341,39 @@ export default {
           }else{
             eventBus.$emit("openForm", {lat: e.latlng.lat, lng: e.latlng.lng, Cname: communityName});
           }
+        }
+
+        function ReportGet(e){
+          // check which community the coordinate is in
+          var point = turf.point([e.latlng.lng, e.latlng.lat]);
+          var communityName = '';
+          for (var i = 0; i<_this.communityB.length; i++){
+            if (turf.booleanContains(_this.communityB[i].geometry, point)){
+              console.log(_this.communityB[i].properties.name);
+              communityName = _this.communityB[i].properties.name;
+              break;
+            }
+          }
+          if (communityName == ''){
+            alert("This website only supports reporting incidents within Calgary");
+          }else{
+            console.log('get reports!')
+            const path = 'http://localhost:5000/queryusers';
+            // always submit left query
+            axios.get(path, {
+                params: {
+                  community: communityName
+                }
+              })
+              .then(function (response) {
+                //console.log(response);
+                var reviews = response.data.data;
+                eventBus.$emit("openuserForm", [communityName, reviews]);
+              })
+              .catch(function (error) {
+                console.log(error);
+              });
+              }
         }
 
         function NearestHosp(e){
@@ -416,19 +452,19 @@ export default {
         function clustertoggle(){
           if (_this.cluster){
             // remove toggle conext menu item and re-add it with new text
-            _this.leaf.contextmenu.removeItem(6);
+            _this.leaf.contextmenu.removeItem(7);
             _this.leaf.contextmenu.insertItem({
               text:'Cluster Icons Toggle: false',
               callback: clustertoggle
-            }, 6);
+            }, 7);
             _this.cluster = false;
           }else{
             // remove toggle conext menu item and re-add it with new text
-            _this.leaf.contextmenu.removeItem(6);
+            _this.leaf.contextmenu.removeItem(7);
             _this.leaf.contextmenu.insertItem({
               text:'Cluster Icons Toggle: true',
               callback: clustertoggle
-            }, 6);
+            }, 7);
             _this.cluster = true;
           }
           console.log(_this.cluster);

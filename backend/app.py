@@ -127,6 +127,36 @@ def query():
     return jsonify(status='success', data=data_dict)
 
 
+@app.route("/queryusers", methods=['GET'])
+def queryusers():
+    community = request.args.get('community')
+    # get rid of invalid characters
+    community = SQLSanatize(community)
+    print(f"User Query: Community: {community}")
+
+    # Create query command
+    command = "Select * from CrimeReviews where"
+    if community != '':
+        command = command + " LOWER(Community) IN ("
+        s = community.split(',')
+        for i in s:
+            command = command + "LOWER('" + i + "'), "
+        command = command[:-2]
+        command = command + ")"
+
+    print(command)
+
+    # submit the query to psql
+    data = db.execute(command).fetchall()
+    print('response!')
+
+    # convert to json
+    data_dict = [dict(row) for row in data]
+
+
+    return jsonify(status='success', data=data_dict)
+
+
 
 if __name__ == '__main__':
     app.run()

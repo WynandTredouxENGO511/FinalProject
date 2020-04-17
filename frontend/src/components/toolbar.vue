@@ -88,7 +88,6 @@
     </v-app-bar>
     <!-- Leaflet Map -->
     <!-- Template for crime form submission -->
-
     <v-dialog v-model="dialog" fullscreen hide-overlay transition="dialog-bottom-transition">
       <v-card>
         <v-toolbar dark color="indigo">
@@ -123,6 +122,23 @@
             <v-btn dark color="blue" class="mr-4" v-on:click="onSubmit">submit</v-btn>
           </v-form>
         </div>
+      </v-card>
+    </v-dialog>
+
+    <!-- Dialog to show user submitted "Crime Reviews" -->
+    <v-dialog v-model="crimeReviews" fullscreen hide-overlay transition="dialog-bottom-transition">
+      <v-card>
+        <v-toolbar dark color="indigo">
+          <v-btn icon dark @click="crimeReviews = false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+          <v-toolbar-title>{{ reviewdialogTitle }}</v-toolbar-title>
+        </v-toolbar>
+        <v-data-table
+          :headers="reviewdialogheaders"
+          :items="reviewdialogitems"
+          :items-per-page="10"
+        ></v-data-table>
       </v-card>
     </v-dialog>
     <!-- CHART LEFT  -->
@@ -205,21 +221,15 @@
       chartRight: null,
       cardLeft: false,
       cardRight: false,
+      crimeReviews: false,
+      reviewdialogTitle: "",
+      reviewdialogheaders:[
+        {text: 'Catagory', value: 'category'},
+        {text: 'Date', value: 'date'},
+        {text: 'Comment', value: 'comment'},
+      ],
+      reviewdialogitems: null,
     }),
-
-    watch: {
-      // filter2(newValue) {
-      //   //called whenever filter2 changes
-      //   if (newValue) { // if filter 2 is enabled
-      //     //enable leaflet sideBySide
-      //     //eventBus.$emit("addsbs");
-      //     console
-      //   } else {
-      //     //disable leaflet sideBySide
-      //     //eventBus.$emit("clearsbs");
-      //   }
-      // }
-    },
 
     mounted() {
       eventBus.$on("foundHospital", data => {
@@ -242,6 +252,17 @@
       //set captcha score
       eventBus.$on("setScore", data => {
         this.captchaScore = data;
+      });
+
+      //function to handle user reviews form
+      eventBus.$on("openuserForm", data => {
+        this.crimeReviews = true;
+        var community = data[0];
+        var reviews  = data[1];
+        console.log(reviews);
+        this.reviewdialogTitle = "User submitted Reports for ".concat(community);
+        this.reviewdialogitems = reviews;
+        //this.community = data.Cname;
       });
     },
 
