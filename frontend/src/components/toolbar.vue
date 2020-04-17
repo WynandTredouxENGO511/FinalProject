@@ -11,7 +11,7 @@
           </v-list-item-content>
         </v-list-item>
         <v-divider></v-divider>
-        <v-expansion-panels multiple accordion style="z-index: 204;">
+        <v-expansion-panels multiple accordion style="z-index: 1000;"> 
           <v-expansion-panel>
             <v-expansion-panel-header>Filter 1 (Left)</v-expansion-panel-header>
             <v-divider></v-divider>
@@ -47,7 +47,7 @@
         </v-expansion-panels>
       </v-list>
       <v-col align="center">
-        <v-btn color="blue" @click="visualize"> UPDATE</v-btn>
+        <v-btn color="blue" @click.stop="verify"> UPDATE</v-btn>
       </v-col>
       <v-col align="center">
         <v-btn color="red" @click="off">clear</v-btn>
@@ -130,15 +130,16 @@
       </v-card>
     </v-dialog>
     <!-- CHART LEFT  -->
-    <v-dialog v-model="cardLeft" hide-overlay elevation="5" persistent no-click-animation>
-      <v-card style="position: absolute; bottom: 0; left: 0;" width="500" height="300">
-        <canvas id="planet-chart"></canvas>
+
+    <v-dialog v-model="cardLeft" hide-overlay persistent no-click-animation>
+      <v-card style="position: absolute; bottom: 0; left: 0; z-index: 2;" width="600" height="300">
+        <canvas id="leftChart"></canvas>
       </v-card>
     </v-dialog>
     <!-- CHART RIGHT -->
-    <v-dialog v-model="cardRight" hide-overlay elevation="5" persistent no-click-animation>
-      <v-card style="position: absolute; bottom: 0; right: 0;" width="500" height="300">
-        <canvas id="planet-chart2"></canvas>
+    <v-dialog v-model="cardRight" hide-overlay persistent no-click-animation>
+      <v-card style="position: absolute; bottom: 0; right: 0;  z-index: 2;" width="600" height="300">
+        <canvas id="rightChart"></canvas>
       </v-card>
     </v-dialog>
 
@@ -162,62 +163,6 @@
     eventBus
   } from '../main';
   import axios from "axios";
-
-  const planetChartData = {
-    type: 'line',
-    data: {
-      labels: ['Mercury', 'Venus', 'Earth', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune'],
-      datasets: [{ // one line graph
-          label: 'Number of Moons',
-          data: [0, 0, 1, 2, 67, 62, 27, 14],
-          backgroundColor: [
-            'rgba(54,73,93,.5)', // Blue
-            'rgba(54,73,93,.5)',
-            'rgba(54,73,93,.5)',
-            'rgba(54,73,93,.5)',
-            'rgba(54,73,93,.5)',
-            'rgba(54,73,93,.5)',
-            'rgba(54,73,93,.5)',
-            'rgba(54,73,93,.5)'
-          ],
-          borderColor: [
-            '#36495d',
-            '#36495d',
-            '#36495d',
-            '#36495d',
-            '#36495d',
-            '#36495d',
-            '#36495d',
-            '#36495d',
-          ],
-          borderWidth: 3
-        },
-        { // another line graph
-          label: 'Planet Mass (x1,000 km)',
-          data: [4.8, 12.1, 12.7, 6.7, 139.8, 116.4, 50.7, 49.2],
-          backgroundColor: [
-            'rgba(71, 183,132,.5)', // Green
-          ],
-          borderColor: [
-            '#47b784',
-          ],
-          borderWidth: 3
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      lineTension: 1,
-      scales: {
-        yAxes: [{
-          ticks: {
-            beginAtZero: true,
-            padding: 25,
-          }
-        }]
-      }
-    }
-  }
 
   export default {
     name: "toolbar",
@@ -345,73 +290,188 @@
         return true;
       },
 
+      verify() {
+        if (this.filterLeft.year.length == 0) {
+          alert("Year Field in Filter Not Selected!");
+        } else if (this.filter2 && (this.filterLeft.year.length == 0 || this.filterRight.year.length == 0)) {
+          alert("Year Field in Filter Not Selected!");
+        } else {
+          this.visualize();
+        }
+      },
+
       visualize() {
         // QUERY THINGS
         console.log('visualize');
         const path = 'http://localhost:5000/query';
+        let _this = this;
+
+        //variables to count crime LEFT SIDE
+        var month = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        var crimeCountLeft;
+        (crimeCountLeft = []).length = this.filterLeft.year.length * 12;
+        crimeCountLeft.fill(0);
+        var crimeLeftData;
+        // RIGHT SIDE 
+        if (this.filterRight.length != 0) {
+          var crimeCountRight;
+          (crimeCountRight = []).length = this.filterRight.year.length * 12;
+          crimeCountRight.fill(0);
+          var crimeRightData;
+        }
+
 
         // always submit left query
         axios.get(path, {
-          params:{
-            incident: JSON.stringify(this.filterLeft.incident),
-            date: JSON.stringify(this.filterLeft.year),
-            community: JSON.stringify(this.filterLeft.community),
-          }
-        })   
-        .then(function(response){
-          //console.log(response);
-          eventBus.$emit("setVisData", ['left', response]);
-        })
-        .catch(function (error){
-          console.log(error);
-        });
-
-        if (this.filter2){
-          // submit right query if enabled
-          axios.get(path, {
-            params:{
-              incident: JSON.stringify(this.filterRight.incident),
-              date: JSON.stringify(this.filterRight.year),
-              community: JSON.stringify(this.filterRight.community),
+            params: {
+              incident: JSON.stringify(this.filterLeft.incident),
+              date: JSON.stringify(this.filterLeft.year),
+              community: JSON.stringify(this.filterLeft.community),
             }
-          })   
-          .then(function(response){
-            //console.log(response);
-            eventBus.$emit("setVisData", ['right', response]);
           })
-          .catch(function (error){
+          .then(function (response) {
+            //console.log(response); assuming one year
+            //sort years by numerical order in case user doesn't follow numerical order
+            var years = _this.filterLeft.year.sort();
+            years = years.map(String);
+            
+            for (var i = 0; i < response.data.data.length; i++) {
+              for (var j = 0; j < month.length; j++) {
+                var yes = 0;
+                //find the month in date
+                if (response.data.data[i].date.search(month[j]) != -1) {
+                  for (var h = 0; h < years.length; h++) {
+                    //find the year in date 
+                    if (response.data.data[i].date.search(years[h]) != -1) {
+                      crimeCountLeft[j+h*12] += response.data.data[i].count;
+                      yes = 1;
+                      break;
+                    }
+                  }
+                  if (yes) break;
+                }
+                
+              }
+            } 
+            //create chart data 
+            var sets = _this.makeData(crimeCountLeft, years);
+            //console.log(sets);
+            crimeLeftData = {
+              type: 'line',
+              data: {
+                labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+                datasets: sets
+              },
+              options: {
+                responsive: true,
+                lineTension: 1,
+                scales: {
+                  yAxes: [{
+                    ticks: {
+                      beginAtZero: true,
+                      padding: 25,
+                    }
+                  }]
+                }
+              }
+            };
+
+            //console.log(crimeCount);
+            eventBus.$emit("setVisData", ['left', response]);
+          })
+          .catch(function (error) {
             console.log(error);
           });
-          }
-          // display charts 
-          let _this = this;
-          this.cardLeft = true;
-          setTimeout(function () {
-            _this.createChart('planet-chart', planetChartData);
-          }, 500);
-          if (this.filter2) {
-            this.cardRight = true;
-            setTimeout(function () {
-              _this.createChart('planet-chart2', planetChartData);
-            }, 500);
-          }
-      },
+        if (this.filter2) {
+          // submit right query if enabled
+          axios.get(path, {
+              params: {
+                incident: JSON.stringify(this.filterRight.incident),
+                date: JSON.stringify(this.filterRight.year),
+                community: JSON.stringify(this.filterRight.community),
+              }
+            })
+            .then(function (response) {
+              var years = _this.filterRight.year.sort();
+              years = years.map(String);
+              
+              for (var i = 0; i < response.data.data.length; i++) {
+                for (var j = 0; j < month.length; j++) {
+                  var yes = 0;
+                  //find the month in date
+                  if (response.data.data[i].date.search(month[j]) != -1) {
+                    for (var h = 0; h < years.length; h++) {
+                      //find the year in date 
+                      if (response.data.data[i].date.search(years[h]) != -1) {
+                        crimeCountRight[j+h*12] += response.data.data[i].count;
+                        yes = 1;
+                        break;
+                      }
+                    }
+                    if (yes) break;
+                  }
+                  
+                }
+              } 
+              //create chart data 
+              var sets = _this.makeData(crimeCountRight, years);
+              //console.log(sets);
+              crimeRightData = {
+                type: 'line',
+                data: {
+                  labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+                  datasets: sets
+                },
+                options: {
+                  responsive: true,
+                  lineTension: 1,
+                  scales: {
+                    yAxes: [{
+                      ticks: {
+                        beginAtZero: true,
+                        padding: 25,
+                      }
+                    }]
+                  }
+                }
+              }
+              eventBus.$emit("setVisData", ['right', response]);
+            })
+            .catch(function (error) {
+              console.log(error);
+            });
+        }
 
+        // display charts 
+        this.cardLeft = true;
+        setTimeout(function () {
+          _this.createChart('leftChart', crimeLeftData);
+        }, 2000);
+
+        if (this.filter2) {
+          this.cardRight = true;
+          setTimeout(function () {
+            _this.createChart('rightChart', crimeRightData);
+          }, 2000);
+        }
+      },
+      //function to DELETE your soul
       off() {
         //clear charts and reset variables
         this.filterLeft.year = [];
         this.filterLeft.community = [];
         this.filterLeft.incident = [];
-  
+
         this.filterRight.year = [];
         this.filterRight.community = [];
         this.filterRight.incident = [];
-  
+
         this.cardLeft = false;
         this.cardRight = false;
       },
-  
+      //function to create chart
       createChart(chartId, chartData) {
+        console.log(chartData);
         const ctx = document.getElementById(chartId);
         const myChart = new Chart(ctx, {
           type: chartData.type,
@@ -419,10 +479,31 @@
           options: chartData.options,
         });
         this.chart = myChart;
-      }
+      },
+
+      //function to separate data in sets per year
+      makeData(crime, years) {
+        //console.log(crime);
+        //standard background colors and borders
+        //red, orange, green, teal
+        var backColor = ['rgba(255, 99, 132, 0.2)', 'rgba(255, 162, 0,0.2)', 'rgba(141, 247, 42,0.2)', 'rgba(0, 128, 129, 0.2)'];
+        var bordColor = ['rgba(255, 99, 132, 1)', 'rgba(255, 162, 0,1)', 'rgba(141, 247, 42,1)', 'rgba(0, 128, 129, 1)'];
+        var sets = [];
+        for (var i = 0; i < crime.length/12; i++) {
+          const temp = {
+            label: years[i],
+            data: crime.slice(i*12,(i+1)*12),
+            backgroundColor: backColor[i],
+            borderColor: bordColor[i],
+            borderWidth: 1
+          };
+          sets.push(temp);
+        }
+        return sets;
+      },
 
     },
- }
+  }
 </script>
 
 
