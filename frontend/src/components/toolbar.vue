@@ -1,6 +1,6 @@
 <template>
   <v-app id="inspire" class="overflow-hidden">
-    <v-navigation-drawer v-model="drawer" dark app style="z-index: 1000;">
+    <v-navigation-drawer v-model="drawer" dark app style="z-index: 204;">
       <v-list dense>
         <v-list-item>
           <v-list-item-content>
@@ -11,7 +11,7 @@
           </v-list-item-content>
         </v-list-item>
         <v-divider></v-divider>
-        <v-expansion-panels multiple accordion>
+        <v-expansion-panels multiple accordion style="z-index: 204;">
           <v-expansion-panel>
             <v-expansion-panel-header>Filter 1 (Left)</v-expansion-panel-header>
             <v-divider></v-divider>
@@ -359,7 +359,8 @@
           }
         })   
         .then(function(response){
-          console.log(response);
+          //console.log(response);
+          eventBus.$emit("setVisData", ['left', response]);
         })
         .catch(function (error){
           console.log(error);
@@ -375,7 +376,8 @@
             }
           })   
           .then(function(response){
-            console.log(response);
+            //console.log(response);
+            eventBus.$emit("setVisData", ['right', response]);
           })
           .catch(function (error){
             console.log(error);

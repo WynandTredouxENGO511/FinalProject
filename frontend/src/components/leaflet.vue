@@ -35,7 +35,9 @@ export default {
       // recaptcha score
       // this should be checked before an incident can be reported
       captchaScore: 0,
-      crime: [],
+      // Variables to store crime data for left/right queries
+      crime_left: null,
+      crime_right: null, 
     };
   },
 
@@ -86,6 +88,19 @@ export default {
     // get captcha value
     eventBus.$on("getScore", () => {
       eventBus.$emit("setScore", this.captchaScore);
+    });
+    // return query responses from visualize()
+    eventBus.$on("setVisData", data => {
+      var side = data[0];
+      var response = data[1];
+      console.log(side)
+      console.log(response)
+
+      if (side=='left'){
+        this.crime_left = response;
+      }else{
+        this.crime_right = response;
+      }
     });
   },
 
@@ -429,14 +444,14 @@ export default {
         });
 
         //add crime data to the map
-        axios
-        .get("Community Crime Statistics.geojson")
-        .then(function(response) {
-          _this.crime = response;
-        })
-        .catch(function(error) {
-          console.log(error);
-        });
+        // axios
+        // .get("Community Crime Statistics.geojson")
+        // .then(function(response) {
+        //   _this.crime = response;
+        // })
+        // .catch(function(error) {
+        //   console.log(error);
+        // });
     } //---- end of map initialization ----
   }
 };
