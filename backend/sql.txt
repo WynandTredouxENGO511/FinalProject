@@ -1,0 +1,7 @@
+Create Table CalgaryCrimeData(
+	Community VARCHAR(50) NOT NULL,
+	Category VARCHAR(50) NOT NULL,
+	Count INT NOT NULL,
+	Date DATE NOT NULL,
+	PRIMARY KEY(Community, Category, Date)
+);

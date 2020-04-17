@@ -13,6 +13,13 @@ def SQLquotes(str):
     else:
         return str
 
+def SQLSanatize(str):
+    badchars = '(){}[]"'
+    badchars = badchars + "'"
+    for i in badchars:
+        str = str.replace(i,'')
+    return str
+
 app = Flask(__name__)
 
 # Check for DATABASE_URL variable
@@ -60,6 +67,58 @@ def cap():
     session.modified = True
     print(session["capScore"])
     return r
+
+@app.route("/query", methods=['GET'])
+def query():
+    community = request.args.get('community')
+    date = request.args.get('date')
+    incident = request.args.get('incident')
+    # get rid of invalid characters
+    community = SQLSanatize(community)
+    date = SQLSanatize(date)
+    incident = SQLSanatize(incident)
+    #print(f"Query: Communities:{community} Incidents: {incident}, years: {date}")
+
+    # Create query command
+    command = "Select * from CalgaryCrimeData where"
+    if community != '':
+        command = command + " LOWER(Community) IN ("
+        s = community.split(',')
+        for i in s:
+            command = command + "LOWER('" + i + "'), "
+        command = command[:-2]
+        command = command + ")"
+        if incident != '' or date != '':
+            command = command + " AND"
+
+
+    if incident != '':
+        command = command + " LOWER(Category) IN ("
+        s = incident.split(',')
+        for i in s:
+            command = command + "LOWER('" + i + "'), "
+        command = command[:-2]
+        command = command + ")"
+        if date != '':
+            command = command + " AND"
+
+    if date != '':
+        command = command + " date_part('year',Date) IN ("
+        s = date.split(',')
+        for i in s:
+            command = command + i + ", "
+        command = command[:-2]
+        command = command + ")"
+    print(command)
+
+    # submit the query to psql
+    data = db.execute(command).fetchall()
+
+    # convert to json
+    data_dict = [dict(row) for row in data]
+
+
+    return jsonify(status='success', data=data_dict)
 
 
 

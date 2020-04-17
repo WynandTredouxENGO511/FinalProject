@@ -45,7 +45,7 @@
         </v-expansion-panels>
       </v-list>
       <v-col align="center">
-        <v-btn color="blue" onClick="visualize"> UPDATE</v-btn>
+        <v-btn color="blue" @click="visualize"> UPDATE</v-btn>
       </v-col>
     </v-navigation-drawer>
     <!-- Top Nav Bar -->
@@ -267,8 +267,42 @@
       },
       visualize() {
         // QUERY THINGS
+        console.log('visualize');
+        const path = 'http://localhost:5000/query';
+
+        // always submit left query
+        axios.get(path, {
+          params:{
+            incident: JSON.stringify(this.filterLeft.incident),
+            date: JSON.stringify(this.filterLeft.year),
+            community: JSON.stringify(this.filterLeft.community),
+          }
+        })   
+        .then(function(response){
+          console.log(response);
+        })
+        .catch(function (error){
+          console.log(error);
+        });
+
+        if (this.filter2){
+          // submit right query if enabled
+          axios.get(path, {
+            params:{
+              incident: JSON.stringify(this.filterRight.incident),
+              date: JSON.stringify(this.filterRight.year),
+              community: JSON.stringify(this.filterRight.community),
+            }
+          })   
+          .then(function(response){
+            console.log(response);
+          })
+          .catch(function (error){
+            console.log(error);
+          });
+          }
       }
-    },
+    }
   }
 </script>
 
