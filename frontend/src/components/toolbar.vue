@@ -11,7 +11,7 @@
           </v-list-item-content>
         </v-list-item>
         <v-divider></v-divider>
-        <v-expansion-panels multiple accordion style="z-index: 1000;">
+        <v-expansion-panels multiple accordion style="z-index: 1000;"> 
           <v-expansion-panel>
             <v-expansion-panel-header>Filter 1 (Left)</v-expansion-panel-header>
             <v-divider></v-divider>
@@ -130,8 +130,8 @@
       </v-card>
     </v-dialog>
     <!-- CHART LEFT  -->
-    <v-dialog v-model="cardLeft" hide-overlay persistent no-click-animation>
 
+    <v-dialog v-model="cardLeft" hide-overlay persistent no-click-animation>
       <v-card style="position: absolute; bottom: 0; left: 0; z-index: 2;" width="600" height="300">
         <canvas id="leftChart"></canvas>
       </v-card>
@@ -382,7 +382,6 @@
           .catch(function (error) {
             console.log(error);
           });
-
         if (this.filter2) {
           // submit right query if enabled
           axios.get(path, {
