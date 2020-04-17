@@ -113,6 +113,7 @@ def query():
 
     # submit the query to psql
     data = db.execute(command).fetchall()
+    print('response!')
 
     # convert to json
     data_dict = [dict(row) for row in data]

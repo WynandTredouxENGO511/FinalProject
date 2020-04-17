@@ -10,7 +10,8 @@ import axios from "axios";
 import * as turf from "@turf/turf";
 import "leaflet-contextmenu";
 import "leaflet-side-by-side"
-import { load } from 'recaptcha-v3'
+import { load } from 'recaptcha-v3';
+import "leaflet.heat";
 
 export default {
   name: "mymap",
@@ -38,6 +39,9 @@ export default {
       // Variables to store crime data for left/right queries
       crime_left: null,
       crime_right: null, 
+      // Variables to store heatmaps for left/right queries
+      heatmap_left: null,
+      heatmap_right: null,
     };
   },
 
@@ -73,18 +77,6 @@ export default {
         this.leaf.addLayer(this.policeLayer);
       }
     });
-    // remove sbs
-    eventBus.$on("clearsbs", () => {
-      if (this.sbs != null) {
-        this.leaf.removeControl(this.sbs)
-      }
-    });
-    // add sbs
-    eventBus.$on("addsbs", () => {
-      if (this.sbs != null) {
-        this.sbs.addTo(this.leaf);
-      }
-    });
     // get captcha value
     eventBus.$on("getScore", () => {
       eventBus.$emit("setScore", this.captchaScore);
@@ -93,18 +85,129 @@ export default {
     eventBus.$on("setVisData", data => {
       var side = data[0];
       var response = data[1];
-      console.log(side)
-      console.log(response)
 
       if (side=='left'){
         this.crime_left = response;
+        this.updateHeatmaps('left', this.crime_left)
       }else{
         this.crime_right = response;
+        this.updateHeatmaps('right', this.crime_right)
       }
+      
+
     });
+
+
   },
 
   methods: {
+    getCommunityCentre(name){
+      var centroid = [];
+      for (var i = 0; i<this.communityB.length; i++){
+        if (this.communityB[i].properties.name == name){
+          centroid = turf.centroid(this.communityB[i]);
+          break;
+        }
+      }
+      return centroid;
+    },
+
+    // draw heatmap
+    updateHeatmaps(side, data){
+      if (this.heatmap_left!=null){
+         this.leaf.removeLayer(this.heatmap_left);
+         this.heatmap_left = null;
+      }
+
+      if (this.heatmap_right!=null){
+         this.leaf.removeLayer(this.heatmap_right);
+         this.heatmap_right = null;
+      }
+
+      data = data.data.data;
+      console.log(side);
+      console.log(data);
+      // get a list of all communities with their centers
+      var centroid = this.getCommunityCentre(data[0].community);
+      var maxcount = 0;
+      var communityCount = [{name: data[0].community,
+                              count: 0,
+                              centroid: centroid}]; // keep track of the crime per community [name count centroid]
+      // sum up crime for each community
+      for (var i=0; i<data.length; i++){
+        var name = data[i].community;
+        var count = data[i].count;
+        // find if name exists in communityCount
+        var index = null;
+        for (var j=0; j<communityCount.length; j++){
+          if (communityCount[j].name==name){
+            index = j;
+            break;
+          }
+        }
+        // if no community by that name is found, add it to the array
+        if (index == null){
+          //find lat/long of community
+          centroid = this.getCommunityCentre(name);      
+
+          communityCount.push(
+            {name: name,
+            count: count,
+            centroid: centroid}
+          );
+          // keep track of largest count
+          if (count > maxcount){
+            maxcount = count;
+          }
+        }else{
+          communityCount[index].count += count;
+          // keep track of largest count
+          if (communityCount[index].count > maxcount){
+            maxcount = communityCount[index].count;
+          }
+        }
+      }
+      //console.log(communityCount);
+      //console.log(maxcount);
+      // now that crime has been summed for all communities and their
+      // centroids have been found, create array for heatmap
+      var heat = new Array(communityCount.length);
+      var counter = 0;
+      for (i = 0; i<communityCount.length; i++){
+        // set lat, long, intensity (where intensity = count/(max count))
+        //console.log(i);
+        var intensity = communityCount[i].count/maxcount;
+        if (communityCount[i].centroid.length == 0){
+            // skip
+            continue;
+        }
+        heat[counter] = [communityCount[i].centroid.geometry.coordinates[1], communityCount[i].centroid.geometry.coordinates[0], intensity];
+        counter += 1;
+      }
+      heat = heat.slice(0,counter);
+      console.log('heat_done!')
+      //console.log(heat);
+      // now finally create heatmap
+
+      if (side=='left'){
+        this.heatmap_left = leaflet.heatLayer(heat, {
+        radius: 50,
+        minOpacity: 0.3,
+        // gradient : {0.3: '#5efffd', 0.5: '#6ba9fe', 0.8:'#a651ff', 1: '#f200fc'}
+        });
+        
+        this.leaf.addLayer(this.heatmap_left);
+      }else{
+        this.heatmap_right = leaflet.heatLayer(heat, {
+        radius: 50,
+        minOpacity: 0.3,
+        gradient : {0.3: '#fbff66', 0.5: '#b6dc64', 0.8:'#55a664', 1: '#288165'}
+        });
+        this.leaf.addLayer(this.heatmap_right);
+      }
+    },
+
+
     //initializes leaflet map
     initMap() {
       // get reCaptcha score
@@ -331,9 +434,7 @@ export default {
       var defaultTile = { OpenStreetMap: OSMtile, Satellite: satellite };
       leaflet.control.layers(defaultTile).addTo(this.leaf);
       //leaflet side-by-side
-      var filter1;
-      var filter2;
-      _this.sbs = leaflet.control.sideBySide(filter1, filter2)
+      _this.sbs = leaflet.control.sideBySide(_this.heatmap_left, _this.heatmap_right)
       //_this.sbs.addTo(this.leaf);
 
       // add community boundaries to map

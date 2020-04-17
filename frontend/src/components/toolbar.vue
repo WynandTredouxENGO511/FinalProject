@@ -267,17 +267,17 @@
     }),
 
     watch: {
-      filter2(newValue) {
-        //called whenever filter2 changes
-        if (newValue) { // if filter 2 is enabled
-          //enable leaflet sideBySide
-          eventBus.$emit("addsbs");
-        } else {
-          //disable leaflet sideBySide
-          eventBus.$emit("clearsbs");
-        }
-
-      }
+      // filter2(newValue) {
+      //   //called whenever filter2 changes
+      //   if (newValue) { // if filter 2 is enabled
+      //     //enable leaflet sideBySide
+      //     //eventBus.$emit("addsbs");
+      //     console
+      //   } else {
+      //     //disable leaflet sideBySide
+      //     //eventBus.$emit("clearsbs");
+      //   }
+      // }
     },
 
     mounted() {
