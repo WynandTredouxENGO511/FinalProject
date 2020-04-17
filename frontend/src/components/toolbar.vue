@@ -11,7 +11,11 @@
           </v-list-item-content>
         </v-list-item>
         <v-divider></v-divider>
+<<<<<<< HEAD
         <v-expansion-panels multiple accordion style="z-index: 204;">
+=======
+        <v-expansion-panels multiple accordion style="z-index: 1000;"> 
+>>>>>>> changes
           <v-expansion-panel>
             <v-expansion-panel-header>Filter 1 (Left)</v-expansion-panel-header>
             <v-divider></v-divider>
@@ -131,13 +135,13 @@
     </v-dialog>
     <!-- CHART LEFT  -->
     <v-dialog v-model="cardLeft" hide-overlay elevation="5" persistent no-click-animation>
-      <v-card style="position: absolute; bottom: 0; left: 0;" width="500" height="300">
+      <v-card style="position: absolute; bottom: 0; left: 0; z-index: 2;" width="500" height="300" >
         <canvas id="planet-chart"></canvas>
       </v-card>
     </v-dialog>
     <!-- CHART RIGHT -->
     <v-dialog v-model="cardRight" hide-overlay elevation="5" persistent no-click-animation>
-      <v-card style="position: absolute; bottom: 0; right: 0;" width="500" height="300">
+      <v-card style="position: absolute; bottom: 0; right: 0;  z-index: 2;" width="500" height="300">
         <canvas id="planet-chart2"></canvas>
       </v-card>
     </v-dialog>
@@ -383,12 +387,14 @@
             console.log(error);
           });
           }
+
           // display charts 
           let _this = this;
           this.cardLeft = true;
           setTimeout(function () {
             _this.createChart('planet-chart', planetChartData);
           }, 500);
+
           if (this.filter2) {
             this.cardRight = true;
             setTimeout(function () {
