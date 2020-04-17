@@ -19,6 +19,7 @@
     "overlapping-marker-spiderfier-leaflet": "^0.2.7",
     "recaptcha-v3": "^1.8.0",
     "vue": "^2.6.11",
+    "vue-chartjs": "^3.5.0",
     "vuejs-datepicker": "^1.6.2",
     "vuetify": "^2.2.11"
   },
