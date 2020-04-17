@@ -13,7 +13,7 @@
         <v-divider></v-divider>
         <v-expansion-panels multiple accordion style="z-index: 1000;" v-model="expand">
           <v-expansion-panel>
-            <v-expansion-panel-header>Filter 1 (Left)</v-expansion-panel-header>
+            <v-expansion-panel-header>Filter 1</v-expansion-panel-header>
             <v-divider></v-divider>
             <!-- Selectors for filtering crime data -->
             <v-expansion-panel-content>
@@ -28,7 +28,7 @@
           </v-expansion-panel>
           <!-- 2nd expansion panel for optional 2nd filter -->
           <v-expansion-panel :disabled="!filter2">
-            <v-expansion-panel-header>Filter 2 (Right)</v-expansion-panel-header>
+            <v-expansion-panel-header>Filter 2</v-expansion-panel-header>
             <v-divider></v-divider>
             <v-expansion-panel-content>
               <v-list dense>
@@ -54,8 +54,8 @@
         </v-list-item>
         <v-list-item>
           <v-list-content>
-            <v-switch v-model="heatLeft" label="Left" @change="toggleHeatLeft"></v-switch>
-            <v-switch v-model="heatRight" label="Right" @change="toggleHeatRight"></v-switch>
+            <v-switch v-model="heatLeft" label="Heatmap 1" @change="toggleHeatLeft"></v-switch>
+            <v-switch v-model="heatRight" label="Heatmap 2" @change="toggleHeatRight"></v-switch>
           </v-list-content>
         </v-list-item>
       </v-list>
