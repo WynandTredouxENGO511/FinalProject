@@ -5,3 +5,12 @@ Create Table CalgaryCrimeData(
 	Date DATE NOT NULL,
 	PRIMARY KEY(Community, Category, Date)
 );
+
+Create Table CrimeReviews(
+	id SERIAL NOT NULL,
+	Community VARCHAR(50) NOT NULL,
+	Category VARCHAR(50) NOT NULL,
+	Date DATE NOT NULL,
+	Comment TEXT,
+	PRIMARY KEY(id)
+);

@@ -47,6 +47,11 @@ def home():
         # escape ' character in comment
         post_data['comment'] = SQLquotes(post_data['comment'])
         print(f"new incident form submission: {post_data['type']}, {post_data['date']}, {post_data['community']}, {post_data['comment']}")
+        # send data to database
+        db.execute("INSERT INTO CrimeReviews (Community, Category, Date, Comment) VALUES (:Com, :Cat, :Dat, :Comm)",
+                   {"Com": post_data['community'], "Cat": post_data['type'], "Dat": post_data['date'], "Comm": post_data['comment']})
+        db.commit()
+
         return jsonify(status='success')
     else:
         print(f"reCaptcha score too low {score}")
