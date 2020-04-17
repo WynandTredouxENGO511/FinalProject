@@ -11,21 +11,19 @@
           </v-list-item-content>
         </v-list-item>
         <v-divider></v-divider>
-        <v-expansion-panels multiple accordion style="z-index: 1000;"> 
+        <v-expansion-panels multiple accordion style="z-index: 1000;" v-model="expand">
           <v-expansion-panel>
             <v-expansion-panel-header>Filter 1 (Left)</v-expansion-panel-header>
             <v-divider></v-divider>
             <!-- Selectors for filtering crime data -->
             <v-expansion-panel-content>
-              <v-list dense>
-                <v-list-item-content>
-                  <v-select :items="years" label="Years" outlined multiple v-model="filterLeft.year"></v-select>
-                  <v-select :items="IncidentTypes" label="Incident Types" outlined multiple
-                    v-model="filterLeft.incident"></v-select>
-                  <v-autocomplete :items="communities" item-text="properties.name" label="Communities" outlined multiple
-                    dense v-model="filterLeft.community"></v-autocomplete>
-                </v-list-item-content>
-              </v-list>
+              <v-list-item-content>
+                <v-select :items="years" label="Years" outlined multiple v-model="filterLeft.year"></v-select>
+                <v-select :items="IncidentTypes" label="Incident Types" outlined multiple v-model="filterLeft.incident">
+                </v-select>
+                <v-autocomplete :items="communities" item-text="properties.name" label="Communities" outlined multiple
+                  dense v-model="filterLeft.community"></v-autocomplete>
+              </v-list-item-content>
             </v-expansion-panel-content>
           </v-expansion-panel>
           <!-- 2nd expansion panel for optional 2nd filter -->
@@ -46,11 +44,37 @@
           </v-expansion-panel>
         </v-expansion-panels>
       </v-list>
+      <v-list dense>
+        <v-list-item>
+          <v-list-item-content>
+            <v-list-item-title class="pb-2">
+              <h1>Toggle Heatmaps</h1>
+            </v-list-item-title>
+          </v-list-item-content>
+        </v-list-item>
+        <v-list-item>
+          <v-list-content>
+            <v-switch v-model="heatLeft" label="Left" @change="toggleHeatLeft"></v-switch>
+            <v-switch v-model="heatRight" label="Right" @change="toggleHeatRight"></v-switch>
+          </v-list-content>
+        </v-list-item>
+      </v-list>
+      <v-divider></v-divider>
       <v-col align="center">
-        <v-btn color="blue" @click.stop="verify"> UPDATE</v-btn>
+        <v-tooltip right>
+          <template v-slot:activator="{ on }">
+            <v-btn color="blue" @click.stop="verify" v-on="on"> UPDATE</v-btn>
+          </template>
+          <span>Submit data</span>
+        </v-tooltip>
       </v-col>
       <v-col align="center">
-        <v-btn color="red" @click="off">clear</v-btn>
+        <v-tooltip right>
+          <template v-slot:activator="{ on }">
+            <v-btn color="red" @click="off" v-on="on">clear</v-btn>
+          </template>
+          <span>Clear all data</span>
+        </v-tooltip>
       </v-col>
     </v-navigation-drawer>
     <!-- Top Nav Bar -->
@@ -229,6 +253,9 @@
         {text: 'Comment', value: 'comment'},
       ],
       reviewdialogitems: null,
+      heatLeft: false,
+      heatRight: false,
+      expand: [],
     }),
 
     mounted() {
@@ -319,6 +346,8 @@
 
       visualize() {
         // QUERY THINGS
+        this.expand = [];
+        this.heatLeft = true;
         console.log('visualize');
         const path = 'http://localhost:5000/query';
         let _this = this;
@@ -330,7 +359,8 @@
         crimeCountLeft.fill(0);
         var crimeLeftData;
         // RIGHT SIDE 
-        if (this.filterRight.length != 0) {
+        if (this.filterRight.year.length != 0) {
+          this.heatRight = true;
           var crimeCountRight;
           (crimeCountRight = []).length = this.filterRight.year.length * 12;
           crimeCountRight.fill(0);
@@ -351,7 +381,7 @@
             //sort years by numerical order in case user doesn't follow numerical order
             var years = _this.filterLeft.year.sort();
             years = years.map(String);
-            
+
             for (var i = 0; i < response.data.data.length; i++) {
               for (var j = 0; j < month.length; j++) {
                 var yes = 0;
@@ -360,16 +390,16 @@
                   for (var h = 0; h < years.length; h++) {
                     //find the year in date 
                     if (response.data.data[i].date.search(years[h]) != -1) {
-                      crimeCountLeft[j+h*12] += response.data.data[i].count;
+                      crimeCountLeft[j + h * 12] += response.data.data[i].count;
                       yes = 1;
                       break;
                     }
                   }
                   if (yes) break;
                 }
-                
+
               }
-            } 
+            }
             //create chart data 
             var sets = _this.makeData(crimeCountLeft, years);
             //console.log(sets);
@@ -411,7 +441,7 @@
             .then(function (response) {
               var years = _this.filterRight.year.sort();
               years = years.map(String);
-              
+
               for (var i = 0; i < response.data.data.length; i++) {
                 for (var j = 0; j < month.length; j++) {
                   var yes = 0;
@@ -420,16 +450,16 @@
                     for (var h = 0; h < years.length; h++) {
                       //find the year in date 
                       if (response.data.data[i].date.search(years[h]) != -1) {
-                        crimeCountRight[j+h*12] += response.data.data[i].count;
+                        crimeCountRight[j + h * 12] += response.data.data[i].count;
                         yes = 1;
                         break;
                       }
                     }
                     if (yes) break;
                   }
-                  
+
                 }
-              } 
+              }
               //create chart data 
               var sets = _this.makeData(crimeCountRight, years);
               //console.log(sets);
@@ -474,6 +504,7 @@
       },
       //function to DELETE your soul
       off() {
+        this.expand = [];
         //clear charts and reset variables
         this.filterLeft.year = [];
         this.filterLeft.community = [];
@@ -485,6 +516,9 @@
 
         this.cardLeft = false;
         this.cardRight = false;
+
+        this.heatLeft = false;
+        this.heatRight = false;
         // clear heatmaps
         eventBus.$emit("clearheatmaps");
       },
@@ -505,13 +539,17 @@
         //console.log(crime);
         //standard background colors and borders
         //red, orange, green, teal
-        var backColor = ['rgba(255, 99, 132, 0.2)', 'rgba(255, 162, 0,0.2)', 'rgba(141, 247, 42,0.2)', 'rgba(0, 128, 129, 0.2)'];
-        var bordColor = ['rgba(255, 99, 132, 1)', 'rgba(255, 162, 0,1)', 'rgba(141, 247, 42,1)', 'rgba(0, 128, 129, 1)'];
+        var backColor = ['rgba(255, 99, 132, 0.2)', 'rgba(255, 162, 0,0.2)', 'rgba(141, 247, 42,0.2)',
+          'rgba(0, 128, 129, 0.2)'
+        ];
+        var bordColor = ['rgba(255, 99, 132, 1)', 'rgba(255, 162, 0,1)', 'rgba(141, 247, 42,1)',
+          'rgba(0, 128, 129, 1)'
+        ];
         var sets = [];
-        for (var i = 0; i < crime.length/12; i++) {
+        for (var i = 0; i < crime.length / 12; i++) {
           const temp = {
             label: years[i],
-            data: crime.slice(i*12,(i+1)*12),
+            data: crime.slice(i * 12, (i + 1) * 12),
             backgroundColor: backColor[i],
             borderColor: bordColor[i],
             borderWidth: 1
@@ -520,7 +558,12 @@
         }
         return sets;
       },
-
+      toggleHeatLeft() {
+        eventBus.$emit("heatL", this.heatLeft);
+      },
+      toggleHeatRight() {
+        eventBus.$emit("heatR", this.heatRight);
+      },
     },
   }
 </script>
