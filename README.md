@@ -95,3 +95,5 @@ Create Table CrimeReviews(
 Then run `import_crime.py` with the environment variable `DATABASE_URL=postgresql://postgres:ENGO551@localhost/postgres` to populate the CalgaryCrimeData table with data from the Community_Crime_Statistics.csv
 
 Now you can start the backend server by running `app.bat` or `app.sh` in /backend
+
+With both the backend and frontend running, the site should be active on your local network at http://localhost:8080
