@@ -1,5 +1,6 @@
 # FinalProject
-
+Final project for the ENGO551 course during the Winter2020 semester
+Authors: Wynand Tredoux, AAron Chen
 
 ## Files and Folders
 	/backend - flask server that handles sql query requests from the frontend
